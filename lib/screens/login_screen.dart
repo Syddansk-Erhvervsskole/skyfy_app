@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/screens/home_screen.dart';
@@ -33,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 700),
     );
 
     _fadeAnim = CurvedAnimation(
@@ -44,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen>
     // Logo moves UP
     _logoOffset = Tween<Offset>(
       begin: Offset.zero,
-      end: const Offset(-0.49, -2.68), // tweak for position
+      end: const Offset(-0, 2), // tweak for position
     ).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
@@ -52,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     _logoScale = Tween<double>(
       begin: 1.0,
-      end: 0.33,
+      end: 0,
     ).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
@@ -69,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen>
     // Play animation before navigation
     await _controller.forward();
 
+    sleep(Duration(milliseconds: 500));
     if (!mounted) return;
 
     Navigator.pushReplacement(
@@ -102,30 +105,24 @@ class _LoginScreenState extends State<LoginScreen>
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Form(
+                child:  Form(
                   key: _formKey,
                   child: Column(
                     children: [
                       const Spacer(),
-
                       Transform.translate(
                         offset: Offset(
                           _logoOffset.value.dx * 80,
                           _logoOffset.value.dy * 80,
                         ),
-                        child: Transform.scale(
-                          scale: _logoScale.value,
-                          alignment: Alignment.topLeft,
-                          child: Column(
+                        child:  Column(
                             children: [
                               Image.asset(
                                 'lib/assets/SmallWithNoSubtitle.png',
                                 width: 300,
                               ),
-                              const SizedBox(height: 8),
-                              Opacity(
-                                opacity: 1 - _fadeAnim.value,
-                                child: const Text(
+                              const SizedBox(height: 5),
+                              const Text(
                                   "The weather based music app",
                                   style: TextStyle(
                                     color: Colors.white,
@@ -133,16 +130,16 @@ class _LoginScreenState extends State<LoginScreen>
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ),
                             ],
                           ),
-                        ),
                       ),
 
-                      const SizedBox(height: 50),
-
-
-                      Opacity(
+                      const SizedBox(height: 24),
+                       
+                        Transform.scale(
+                          scale: _logoScale.value,
+                          alignment: Alignment.center,
+                          child:    Opacity(
                         opacity: 1 - _fadeAnim.value,
                         child: Column(
                           children: [
@@ -222,6 +219,12 @@ class _LoginScreenState extends State<LoginScreen>
                           ],
                         ),
                       ),
+                        ),
+               
+                      const SizedBox(height: 50),
+
+
+                   
 
                       const Spacer(),
                     ],
