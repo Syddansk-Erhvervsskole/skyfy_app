@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/helpers/content_helper.dart';
 import 'package:just_audio/just_audio.dart';
@@ -13,10 +14,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final storage = const FlutterSecureStorage();
-  String? currentSong;
-
   final contentHelper = ContentHelper();
   final AudioPlayer player = AudioPlayer();
+
+  String? currentSong;
+  late final StreamSubscription<PlayerState> _playerSub;
 
   final List<Map<String, String>> songs = [
     {'title': 'Morning Sun'},
@@ -28,16 +30,13 @@ class _HomeScreenState extends State<HomeScreen> {
     {'title': 'Autumn Dreams'},
   ];
 
-  final List<String> playlists = [
-    'Playlist 1',
-    'Playlist 2',
-    'Playlist 3',
-    'Playlist 4'
-  ];
-
   @override
   void initState() {
     super.initState();
+
+    _playerSub = player.playerStateStream.listen((_) {
+      if (mounted) setState(() {});
+    });
 
     player.playbackEventStream.listen(
       (event) => print("🎵 Playback event: $event"),
@@ -48,30 +47,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _playerSub.cancel();
     player.dispose();
     super.dispose();
   }
 
-  // ✅ Duration formatting for mm:ss
   String formatDuration(Duration d) {
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$minutes:$seconds";
   }
 
-  // ✅ Play / Pause logic
-  void handlePlayPause(Map<String, dynamic> song, bool isPlaying) async {
-    final playlistUrl = "${contentHelper.baseUrl}/Content/8/playlist.m3u8";
+  void handlePlayPause(Map<String, dynamic> song) async {
+    final playlistUrl = "${contentHelper.baseUrl}/Content/6/playlist.m3u8";
 
-    if (isPlaying && player.playing) {
-      await player.pause();
-      setState(() {});
-      return;
-    }
-
+    // ✅ If tapping the same song, toggle play/pause
     if (currentSong == song['title']) {
-      await player.play();
-      setState(() {});
+      player.playing ? await player.pause() : await player.play();
       return;
     }
 
@@ -81,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
       await player.setAudioSource(AudioSource.uri(Uri.parse(playlistUrl)));
       await player.play();
     } catch (e) {
-      print("❌ Audio Load/Play Failed: $e");
+      print("❌ Failed to play: $e");
       setState(() => currentSong = null);
     }
   }
@@ -94,69 +86,58 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.black,
         title: Align(
           alignment: Alignment.centerLeft,
-          child: Image.asset(
-            'lib/assets/SmallWithNoSubtitle.png',
-            width: 100,
-          ),
+          child: Image.asset('lib/assets/SmallWithNoSubtitle.png', width: 100),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person, color: Colors.white),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
+              Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()));
             },
           ),
         ],
       ),
+
       body: Stack(
         children: [
-          // ✅ Song list
+
           ListView.builder(
-            padding: EdgeInsets.zero,
             itemCount: songs.length,
             itemBuilder: (context, index) {
               final song = songs[index];
-              final isPlaying = currentSong == song['title'];
+              final isCurrent = currentSong == song['title'];
 
               return Card(
                 color: const Color.fromARGB(113, 33, 33, 33),
                 margin: const EdgeInsets.symmetric(vertical: 2),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(
-                    song['title']!,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
+                  title: Text(song['title']!,
+                      style: const TextStyle(color: Colors.white, fontSize: 16)),
                   trailing: IconButton(
                     icon: Icon(
-                      isPlaying ? Icons.pause : Icons.play_arrow,
+                      isCurrent && player.playing
+                        ? Icons.pause
+                        : Icons.play_arrow,
                       color: Colors.white,
                     ),
-                    onPressed: () {
-                      handlePlayPause(song, isPlaying);
-                    },
+                    onPressed: () => handlePlayPause(song),
                   ),
                 ),
               );
             },
           ),
 
-          // ✅ Bottom player with timeline
           if (currentSong != null)
             Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
+              bottom: 0, left: 0, right: 0,
               child: Container(
                 color: const Color(0xFF181818),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Row with song title + play/pause
+
                     Row(
                       children: [
                         const Icon(Icons.music_note, color: Colors.white70),
@@ -165,12 +146,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             currentSong!,
                             style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500),
+                              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+
                         IconButton(
                           icon: Icon(
                             player.playing
@@ -180,57 +160,45 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 32,
                           ),
                           onPressed: () async {
-                            if (player.playing) {
-                              await player.pause();
-                            } else {
-                              await player.play();
-                            }
-                            setState(() {});
+                            player.playing ? await player.pause() : await player.play();
                           },
                         ),
                       ],
                     ),
 
-                    // ✅ Timeline slider
+                    // ✅ SLIDER + TIME
                     StreamBuilder<Duration>(
                       stream: player.positionStream,
                       builder: (context, snapshot) {
-                        final position = snapshot.data ?? Duration.zero;
+                        final pos = snapshot.data ?? Duration.zero;
                         final total = player.duration ?? Duration.zero;
 
-                        return Column(
+                        return Row(
                           children: [
-                            SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                trackHeight: 3,
-                                thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 6),
-                              ),
-                              child: Slider(
-                                min: 0,
-                                max: total.inMilliseconds.toDouble(),
-                                value: position.inMilliseconds
-                                    .clamp(0, total.inMilliseconds)
-                                    .toDouble(),
-                                onChanged: (value) {
-                                  player.seek(
-                                      Duration(milliseconds: value.toInt()));
-                                },
-                                activeColor: Colors.white,
-                                inactiveColor: Colors.white24,
+                            Text(formatDuration(pos),
+                                style: const TextStyle(color: Colors.white70, fontSize: 12)),
+
+                            Expanded(
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 2,
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
+                                ),
+                                child: Slider(
+                                  min: 0,
+                                  max: total.inMilliseconds.toDouble(),
+                                  value: pos.inMilliseconds.clamp(0, total.inMilliseconds).toDouble(),
+                                  onChanged: (value) {
+                                    player.seek(Duration(milliseconds: value.toInt()));
+                                  },
+                                  activeColor: const Color.fromRGBO(79, 152, 255, 1),
+                                  inactiveColor: Colors.white24,
+                                ),
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(formatDuration(position),
-                                    style: const TextStyle(
-                                        color: Colors.white70, fontSize: 12)),
-                                Text(formatDuration(total),
-                                    style: const TextStyle(
-                                        color: Colors.white70, fontSize: 12)),
-                              ],
-                            )
+
+                            Text(formatDuration(total),
+                                style: const TextStyle(color: Colors.white70, fontSize: 12)),
                           ],
                         );
                       },
