@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _passwordController = TextEditingController();
   final storage = const FlutterSecureStorage();
 
-  final loginAPI = LoginHelper();
+  final loginHelper = LoginHelper();
 
   bool isLogin = true;
 
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     final response;
     try {
-      response = await loginAPI.login(username, password);
+      response = await loginHelper.login(username, password);
       print('Login successful: $response');
     } catch (e) {
       final errorMessage = e.toString().contains('HandshakeException') ||

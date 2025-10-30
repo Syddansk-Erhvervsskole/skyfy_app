@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'login_screen.dart';
+import 'package:skyfy_app/helpers/content_helper.dart';
+import 'package:skyfy_app/helpers/api_helper.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:flutter/material.dart';
 import 'profile_screen.dart';
+import 'dart:convert';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,7 +15,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final storage = const FlutterSecureStorage();
-  String? currentSong; 
+  String? currentSong;
+
+  final contentHelper = ContentHelper();
+  final player = AudioPlayer();
 
   final List<Map<String, String>> songs = [
     {'title': 'Morning Sun'},
@@ -129,6 +135,41 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void handlePlayPause(Map<String, dynamic> song, bool isPlaying) async {
+    if (isPlaying) {
+      setState(() {
+        currentSong = null;
+      });
+      await player.pause();
+    } else {
+      setState(() {
+        currentSong = song['title'];
+      });
+
+      final url = Uri.parse('${contentHelper.baseUrl}/Content/8/playlist.m3u8');
+      try {
+        await player.stop();
+
+        player.playbackEventStream.listen(
+          (event) {
+            print("🎵 Playback event: $event");
+          },
+          onError: (Object e, StackTrace stackTrace) {
+            print("❌ Playback error: $e");
+          },
+        );
+
+        await player.setAudioSource(
+          AudioSource.uri(url),
+        );
+        
+        await player.play();
+      } catch (e) {
+        print('Audio Load/Play Failed: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -199,19 +240,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       Container(
                         child: IconButton(
                           icon: Icon(
-                            isPlaying
-                                ? Icons.pause
-                                : Icons.play_arrow,
+                            isPlaying ? Icons.pause : Icons.play_arrow,
                             color: Colors.white,
                           ),
                           onPressed: () {
-                            setState(() {
-                              if (isPlaying) {
-                                currentSong = null; // pause it
-                              } else {
-                                currentSong = song['title']; // play new one
-                              }
-                            });
+                            handlePlayPause(song, isPlaying);
                           },
                         ),
                       ),
@@ -248,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.pause_circle_filled,
-                          color:  Color.fromRGBO(79, 152, 255, 1), size: 32),
+                          color: Color.fromRGBO(79, 152, 255, 1), size: 32),
                       onPressed: () {
                         setState(() {
                           currentSong = null;

@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 abstract class ApiHelper {
-  // final String baseUrl = 'http://10.130.54.39:5298';
-  final String baseUrl = 'https://10.130.54.39:7225';
+  final String baseUrl = 'http://10.130.54.39:5298';
+  // final String baseUrl = 'https://10.130.54.39:7225';
 
-    Future<dynamic> get(String endpoint) async {
+  Future<dynamic> get(String endpoint) async {
     final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
     return _handleResponse(response);
   }
@@ -45,7 +45,14 @@ abstract class ApiHelper {
 
   dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return jsonDecode(response.body);
+      final contentType = response.headers['content-type'];
+
+      if (contentType != null && contentType.contains('application/json')) {
+        return jsonDecode(response.body);
+      } else {
+        // Return raw bytes for non-JSON responses (e.g. files, streams)
+        return response.bodyBytes;
+      }
     } else {
       throw Exception('API Error: ${response.statusCode} - ${response.body}');
     }
