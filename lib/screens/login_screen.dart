@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/screens/home_screen.dart';
@@ -117,8 +117,8 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         child:  Column(
                             children: [
-                              Image.asset(
-                                'lib/assets/SmallWithNoSubtitle.png',
+                              SvgPicture.asset(
+                                'lib/assets/SmallLogoNoCaption.svg',
                                 width: 300,
                               ),
                               const SizedBox(height: 5),
