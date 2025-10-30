@@ -63,7 +63,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-     - lib/assets/LogoSmallWithCaption.svg
      - lib/assets/SmallWithNoSubtitle.png
      - lib/assets/SmallWithSubtitle.png
      - lib/assets/LargeTextBottom.png

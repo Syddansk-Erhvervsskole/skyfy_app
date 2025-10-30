@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 abstract class ApiHelper {
-  // final String baseUrl = 'http://10.130.54.39:5298';
-  final String baseUrl = 'https://10.130.54.39:7225';
+  final String baseUrl = 'http://10.130.54.39:5298';
+  // final String baseUrl = 'https://10.130.54.39:7225';
 
     Future<dynamic> get(String endpoint) async {
     final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
