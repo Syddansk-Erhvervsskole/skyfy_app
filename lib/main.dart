@@ -58,23 +58,23 @@ class _AuthGateState extends State<AuthGate> {
 
 
     if (!mounted) return;
-  Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainLayout()),
+  // Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => const MainLayout()),
 
-      );
-    // if (token == null || token.isEmpty) {
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(builder: (_) => const LoginScreen()),
-    //   );
-    // } else {
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(builder: (_) => const MainLayout()),
+  //     );
+      if (token == null || token.isEmpty) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainLayout()),
 
-    //   );
-    // }
+        );
+      }
   }
 
   @override
