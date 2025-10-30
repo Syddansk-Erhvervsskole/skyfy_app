@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/screens/login_screen.dart';
-import 'package:skyfy_app/screens/home_screen.dart';
 import 'package:skyfy_app/screens/main_layout.dart';
 
 class MyHttpOverrides extends HttpOverrides {
@@ -59,23 +58,23 @@ class _AuthGateState extends State<AuthGate> {
 
 
     if (!mounted) return;
-  // Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(builder: (_) => const MainLayout()),
-
-  //     );
-    if (token == null || token.isEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-    } else {
-      Navigator.pushReplacement(
+  Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MainLayout()),
 
       );
-    }
+    // if (token == null || token.isEmpty) {
+    //   Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(builder: (_) => const LoginScreen()),
+    //   );
+    // } else {
+    //   Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(builder: (_) => const MainLayout()),
+
+    //   );
+    // }
   }
 
   @override
