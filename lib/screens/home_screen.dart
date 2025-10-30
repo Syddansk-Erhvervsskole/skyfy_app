@@ -1,26 +1,15 @@
-import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/helpers/content_helper.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:flutter/material.dart';
-import 'profile_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  final Function(String title, String url) onSongSelected;
+  HomeScreen({super.key, required this.onSongSelected});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
   final storage = const FlutterSecureStorage();
   final contentHelper = ContentHelper();
-  final AudioPlayer player = AudioPlayer();
 
-  String? currentSong;
-  late final StreamSubscription<PlayerState> _playerSub;
-
-  final List<Map<String, String>> songs = [
+  final List<Map<String, String>> songs = const [
     {'title': 'Morning Sun'},
     {'title': 'Rainy Nights'},
     {'title': 'Ocean Breeze'},
@@ -31,183 +20,28 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-
-    _playerSub = player.playerStateStream.listen((_) {
-      if (mounted) setState(() {});
-    });
-
-    player.playbackEventStream.listen(
-      (event) => print("🎵 Playback event: $event"),
-      onError: (Object e, StackTrace st) =>
-          print("❌ Playback error: $e"),
-    );
-  }
-
-  @override
-  void dispose() {
-    _playerSub.cancel();
-    player.dispose();
-    super.dispose();
-  }
-
-  String formatDuration(Duration d) {
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return "$minutes:$seconds";
-  }
-
-  void handlePlayPause(Map<String, dynamic> song) async {
-    final playlistUrl = "${contentHelper.baseUrl}/Content/6/playlist.m3u8";
-
-    // ✅ If tapping the same song, toggle play/pause
-    if (currentSong == song['title']) {
-      player.playing ? await player.pause() : await player.play();
-      return;
-    }
-
-    setState(() => currentSong = song['title']);
-
-    try {
-      await player.setAudioSource(AudioSource.uri(Uri.parse(playlistUrl)));
-      await player.play();
-    } catch (e) {
-      print("❌ Failed to play: $e");
-      setState(() => currentSong = null);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: Image.asset('lib/assets/SmallWithNoSubtitle.png', width: 100),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            onPressed: () {
-              Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const ProfileScreen()));
-            },
-          ),
-        ],
-      ),
+      body: ListView.builder(
+        itemCount: songs.length,
+        itemBuilder: (context, index) {
+          final song = songs[index];
+          final url = "${contentHelper.baseUrl}/Content/6/playlist.m3u8";
 
-      body: Stack(
-        children: [
-
-          ListView.builder(
-            itemCount: songs.length,
-            itemBuilder: (context, index) {
-              final song = songs[index];
-              final isCurrent = currentSong == song['title'];
-
-              return Card(
-                color: const Color.fromARGB(113, 33, 33, 33),
-                margin: const EdgeInsets.symmetric(vertical: 2),
-                child: ListTile(
-                  title: Text(song['title']!,
-                      style: const TextStyle(color: Colors.white, fontSize: 16)),
-                  trailing: IconButton(
-                    icon: Icon(
-                      isCurrent && player.playing
-                        ? Icons.pause
-                        : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => handlePlayPause(song),
-                  ),
-                ),
-              );
-            },
-          ),
-
-          if (currentSong != null)
-            Positioned(
-              bottom: 0, left: 0, right: 0,
-              child: Container(
-                color: const Color(0xFF181818),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-
-                    Row(
-                      children: [
-                        const Icon(Icons.music_note, color: Colors.white70),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            currentSong!,
-                            style: const TextStyle(
-                              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-
-                        IconButton(
-                          icon: Icon(
-                            player.playing
-                                ? Icons.pause_circle_filled
-                                : Icons.play_circle_fill,
-                            color: const Color.fromRGBO(79, 152, 255, 1),
-                            size: 32,
-                          ),
-                          onPressed: () async {
-                            player.playing ? await player.pause() : await player.play();
-                          },
-                        ),
-                      ],
-                    ),
-
-                    // ✅ SLIDER + TIME
-                    StreamBuilder<Duration>(
-                      stream: player.positionStream,
-                      builder: (context, snapshot) {
-                        final pos = snapshot.data ?? Duration.zero;
-                        final total = player.duration ?? Duration.zero;
-
-                        return Row(
-                          children: [
-                            Text(formatDuration(pos),
-                                style: const TextStyle(color: Colors.white70, fontSize: 12)),
-
-                            Expanded(
-                              child: SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                  trackHeight: 2,
-                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
-                                ),
-                                child: Slider(
-                                  min: 0,
-                                  max: total.inMilliseconds.toDouble(),
-                                  value: pos.inMilliseconds.clamp(0, total.inMilliseconds).toDouble(),
-                                  onChanged: (value) {
-                                    player.seek(Duration(milliseconds: value.toInt()));
-                                  },
-                                  activeColor: const Color.fromRGBO(79, 152, 255, 1),
-                                  inactiveColor: Colors.white24,
-                                ),
-                              ),
-                            ),
-
-                            Text(formatDuration(total),
-                                style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
+          return Card(
+            color: const Color.fromARGB(113, 33, 33, 33),
+            margin: const EdgeInsets.symmetric(vertical: 2),
+            child: ListTile(
+              title: Text(
+                song['title']!,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
+              trailing: const Icon(Icons.play_arrow, color: Colors.white),
+              onTap: () => onSongSelected(song['title']!, url),
             ),
-        ],
+          );
+        },
       ),
     );
   }

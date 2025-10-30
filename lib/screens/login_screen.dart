@@ -1,10 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/helpers/login_helper.dart';
 import 'package:skyfy_app/screens/home_screen.dart';
+import 'package:skyfy_app/screens/main_layout.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen>
       PageRouteBuilder(
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
-        pageBuilder: (_, __, ___) => const HomeScreen(),
+        pageBuilder: (_, __, ___) => const MainLayout(),
       ),
     );
   }

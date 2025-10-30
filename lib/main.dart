@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/screens/login_screen.dart';
 import 'package:skyfy_app/screens/home_screen.dart';
+import 'package:skyfy_app/screens/main_layout.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -54,8 +55,15 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _checkAuth() async {
     String? token = await storage.read(key: "auth_token");
 
-    if (!mounted) return;
 
+
+
+    if (!mounted) return;
+  // Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => const MainLayout()),
+
+  //     );
     if (token == null || token.isEmpty) {
       Navigator.pushReplacement(
         context,
@@ -64,7 +72,8 @@ class _AuthGateState extends State<AuthGate> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => const MainLayout()),
+
       );
     }
   }
