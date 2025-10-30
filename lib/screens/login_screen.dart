@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:skyfy_app/helpers/login_helper.dart';
 import 'package:skyfy_app/screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -19,6 +21,8 @@ class _LoginScreenState extends State<LoginScreen>
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final storage = const FlutterSecureStorage();
+
+  final loginAPI = LoginHelper();
 
   bool isLogin = true;
 
@@ -51,7 +55,6 @@ class _LoginScreenState extends State<LoginScreen>
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
-
     _logoScale = Tween<double>(
       begin: 1.0,
       end: 0,
@@ -65,14 +68,46 @@ class _LoginScreenState extends State<LoginScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
+  bool isLoading = false;
   Future<void> Login() async {
-    await storage.write(key: "auth_token", value: "dummy_token");
+    if (isLoading) return;
+    setState(() => isLoading = true);
+
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    final response;
+    try {
+      response = await loginAPI.login(username, password);
+      print('Login successful: $response');
+    } catch (e) {
+      final errorMessage = e.toString().contains('HandshakeException') ||
+              e.toString().contains('SocketException') ||
+              e.toString().contains('Connection timed out')
+          ? 'Server is not responding. Please try again later.'
+          : 'Login failed. Please check your credentials.';
+
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      setState(() => isLoading = false);
+      return;
+    }
+
+    await storage.write(key: "auth_token", value: response['token']);
 
     // Play animation before navigation
     await _controller.forward();
 
     sleep(Duration(milliseconds: 500));
     if (!mounted) return;
+    setState(() => isLoading = false);
 
     Navigator.pushReplacement(
       context,
@@ -105,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen>
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child:  Form(
+                child: Form(
                   key: _formKey,
                   child: Column(
                     children: [
@@ -115,117 +150,117 @@ class _LoginScreenState extends State<LoginScreen>
                           _logoOffset.value.dx * 80,
                           _logoOffset.value.dy * 80,
                         ),
-                        child:  Column(
-                            children: [
-                              SvgPicture.asset(
-                                'lib/assets/SmallLogoNoCaption.svg',
-                                width: 300,
-                              ),
-                              const SizedBox(height: 5),
-                              const Text(
-                                  "The weather based music app",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                            ],
-                          ),
-                      ),
 
-                      const SizedBox(height: 24),
-                       
-                        Transform.scale(
-                          scale: _logoScale.value,
-                          alignment: Alignment.center,
-                          child:    Opacity(
-                        opacity: 1 - _fadeAnim.value,
                         child: Column(
                           children: [
-                            if (!isLogin) ...[
-                              _inputField(
-                                controller: _emailController,
-                                label: "Email",
-                                validator: (v) => !isLogin &&
-                                        (v == null || v.isEmpty)
-                                    ? "Enter email"
-                                    : null,
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-
-                            _inputField(
-                              controller: _usernameController,
-                              label: "Username",
+                            Image.asset(
+                              'lib/assets/SmallWithNoSubtitle.png',
+                              width: 300,
                             ),
-
-                            const SizedBox(height: 16),
-
-                            _inputField(
-                              controller: _passwordController,
-                              label: "Password",
-                              obscure: true,
-                            ),
-
-                            const SizedBox(height: 14),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  isLogin
-                                      ? "Don't have an account? "
-                                      : "Already have an account? ",
-                                  style:
-                                      const TextStyle(color: Colors.white),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    setState(() => isLogin = !isLogin);
-                                  },
-                                  child: Text(
-                                    isLogin ? "Register" : "Login",
-                                    style: const TextStyle(
-                                      color: Color.fromRGBO(79, 152, 255, 1),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            ElevatedButton(
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  Login();
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: const Size.fromHeight(50),
-                                backgroundColor:
-                                    const Color.fromRGBO(79, 152, 255, 0.192),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: Text(
-                                isLogin ? "Login" : "Register",
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                ),
+                            const SizedBox(height: 5),
+                            const Text(
+                              "The weather based music app",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      Transform.scale(
+                        scale: _logoScale.value,
+                        alignment: Alignment.center,
+                        child: Opacity(
+                          opacity: 1 - _fadeAnim.value,
+                          child: Column(
+                            children: [
+                              if (!isLogin) ...[
+                                _inputField(
+                                  controller: _emailController,
+                                  label: "Email",
+                                  validator: (v) =>
+                                      !isLogin && (v == null || v.isEmpty)
+                                          ? "Enter email"
+                                          : null,
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                              _inputField(
+                                controller: _usernameController,
+                                label: "Username",
+                              ),
+                              const SizedBox(height: 16),
+                              _inputField(
+                                controller: _passwordController,
+                                label: "Password",
+                                obscure: true,
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    isLogin
+                                        ? "Don't have an account? "
+                                        : "Already have an account? ",
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() => isLogin = !isLogin);
+                                    },
+                                    child: Text(
+                                      isLogin ? "Register" : "Login",
+                                      style: const TextStyle(
+                                        color: Color.fromRGBO(79, 152, 255, 1),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              ElevatedButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : () {
+                                        if (_formKey.currentState!.validate()) {
+                                          Login();
+                                        }
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(50),
+                                  backgroundColor:
+                                      const Color.fromRGBO(79, 152, 255, 0.192),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: isLoading
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
+                                        ),
+                                      )
+                                    : Text(
+                                        isLogin ? "Login" : "Register",
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                              ),
+                            ],
+                          ),
                         ),
-               
+                      ),
                       const SizedBox(height: 50),
-
-
-                   
-
                       const Spacer(),
                     ],
                   ),
