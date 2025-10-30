@@ -18,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? currentSong;
 
   final contentHelper = ContentHelper();
-  final player = AudioPlayer();
+  final AudioPlayer player = AudioPlayer();
 
   final List<Map<String, String>> songs = [
     {'title': 'Morning Sun'},
@@ -36,6 +36,22 @@ class _HomeScreenState extends State<HomeScreen> {
     'Playlist 3',
     'Playlist 4'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    player.playbackEventStream.listen(
+      (event) => print("🎵 Playback event: $event"),
+      onError: (Object e, StackTrace st) =>
+          print("❌ Playback error: $e"),
+    );
+  }
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
+  }
 
   void showAddToPlaylistDialog(String songTitle) {
     showModalBottomSheet(
@@ -135,40 +151,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void handlePlayPause(Map<String, dynamic> song, bool isPlaying) async {
-    if (isPlaying) {
-      setState(() {
-        currentSong = null;
-      });
-      await player.pause();
-    } else {
-      setState(() {
-        currentSong = song['title'];
-      });
+ void handlePlayPause(Map<String, dynamic> song, bool isPlaying) async {
+  final playlistUrl = "${contentHelper.baseUrl}/Content/8/playlist.m3u8";
 
-      final url = Uri.parse('${contentHelper.baseUrl}/Content/8/playlist.m3u8');
-      try {
-        await player.stop();
+  if (isPlaying) {
 
-        player.playbackEventStream.listen(
-          (event) {
-            print("🎵 Playback event: $event");
-          },
-          onError: (Object e, StackTrace stackTrace) {
-            print("❌ Playback error: $e");
-          },
-        );
-
-        await player.setAudioSource(
-          AudioSource.uri(url),
-        );
-        
-        await player.play();
-      } catch (e) {
-        print('Audio Load/Play Failed: $e');
-      }
-    }
+    await player.pause();
+    setState(() => currentSong = null);
+    return;
   }
+
+
+  setState(() => currentSong = song['title']);
+
+  try {
+    print("🔊 Loading stream: $playlistUrl");
+
+    await player.stop();
+    await player.setAudioSource(
+      AudioSource.uri(Uri.parse(playlistUrl)),
+    );
+
+    await player.play();
+  } catch (e) {
+    print("❌ Audio Load/Play Failed: $e");
+    setState(() => currentSong = null);
+  }
+}
 
   @override
   Widget build(BuildContext context) {
