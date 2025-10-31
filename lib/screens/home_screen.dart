@@ -167,11 +167,6 @@ Expanded(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-
-                  // Optional artist text if you add it later
-                  // Text("Artist name...",
-                  //   style: TextStyle(color: Colors.white54, fontSize: 13),
-                  // )
                 ],
               ),
             );
