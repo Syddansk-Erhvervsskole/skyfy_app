@@ -22,7 +22,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    // Load stored username and email (if saved)
     final username = await storage.read(key: 'username') ?? '';
     final email = await storage.read(key: 'email') ?? '';
     setState(() {
@@ -37,91 +36,128 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await storage.write(key: 'email', value: _emailController.text);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+        const SnackBar(
+          content: Text('Profile updated'),
+          backgroundColor: Colors.green,
+        ),
       );
     }
   }
 
   Future<void> _logout() async {
     await storage.delete(key: 'auth_token');
-    if (context.mounted) {
+    if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false,
+        (_) => false,
       );
     }
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white),
+      border: const OutlineInputBorder(),
+      enabledBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.white),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Color.fromRGBO(79, 152, 255, 1)),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+
       appBar: AppBar(
         backgroundColor: Colors.black,
+        elevation: 0,
         title: const Text(
-          'Profile',
+          "Profile",
           style: TextStyle(color: Colors.white),
         ),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _usernameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Username',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white70),
+
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+
+                const SizedBox(height: 10),
+
+                // Profile icon
+                const CircleAvatar(
+                  radius: 45,
+                  backgroundColor: Color.fromRGBO(79, 152, 255, 1),
+                  child: Icon(Icons.person, size: 48, color: Colors.white),
+                ),
+
+                const SizedBox(height: 24),
+
+                TextFormField(
+                  controller: _usernameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _inputDecoration("Username"),
+                  validator: (v) =>
+                      v!.isEmpty ? "Please enter a username" : null,
+                ),
+
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _emailController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _inputDecoration("Email"),
+                  validator: (v) =>
+                      v!.isEmpty ? "Please enter an email" : null,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Save Changes Button
+                ElevatedButton(
+                  onPressed: _saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    backgroundColor: const Color.fromRGBO(79, 152, 255, 0.18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
+                  child: const Text(
+                    "Save Changes",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter a username' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _emailController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white70),
+
+                const SizedBox(height: 16),
+
+                // Logout Button
+                ElevatedButton(
+                  onPressed: _logout,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    backgroundColor: Colors.red.withOpacity(0.2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
+                  child: const Text(
+                    "Logout",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter an email' : null,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _saveProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                ),
-                child: const Text('Save Changes'),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _logout,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Logout'),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

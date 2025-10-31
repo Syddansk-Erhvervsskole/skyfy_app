@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:skyfy_app/helpers/mini_player.dart';
+import 'package:skyfy_app/models/Content.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
 
@@ -16,7 +17,7 @@ class _MainLayoutState extends State<MainLayout> {
   int currentIndex = 0;
 
   final AudioPlayer player = AudioPlayer();
-  String? currentSong;
+  Content? currentSong;
   late StreamSubscription<PlayerState> _playerSub;
 
   final pages = [];
@@ -48,11 +49,11 @@ class _MainLayoutState extends State<MainLayout> {
     return "$minutes:$seconds";
   }
 
-  Future<void> playSong(String title, String url) async {
-    setState(() => currentSong = title);
+  Future<void> playSong(Content song) async {
+    setState(() => currentSong = song);
 
     try {
-      await player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+      await player.setAudioSource(AudioSource.uri(Uri.parse(song.streamUrl)));
       await player.play();
     } catch (_) {
       setState(() => currentSong = null);
@@ -76,29 +77,31 @@ class _MainLayoutState extends State<MainLayout> {
         children: [
           MiniPlayer(
             player: player,
-            currentSong: currentSong,
+            currentSong: currentSong,   
             formatDuration: formatDuration,
+
           ),
 
-
-        Theme(  data: Theme.of(context).copyWith(
-            splashFactory: NoSplash.splashFactory,  
-            highlightColor: Colors.transparent,     
-            splashColor: Colors.transparent,         
-            hoverColor: Colors.transparent,         
-          ), child: 
-          BottomNavigationBar(
-            
-            backgroundColor: const Color.fromARGB(255, 17, 17, 17),
-            selectedItemColor: Colors.blueAccent,
-            unselectedItemColor: Colors.white54,
-            currentIndex: currentIndex,
-            onTap: (i) => setState(() => currentIndex = i),
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-              BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-            ],
-          ),)
+          Theme(
+            data: Theme.of(context).copyWith(
+              splashFactory: NoSplash.splashFactory,
+              highlightColor: Colors.transparent,
+              splashColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+            ),
+            child: BottomNavigationBar(
+              backgroundColor: const Color.fromARGB(255, 17, 17, 17),
+              selectedItemColor: Colors.blueAccent,
+              unselectedItemColor: Colors.white54,
+              currentIndex: currentIndex,
+              onTap: (i) => setState(() => currentIndex = i),
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
+                BottomNavigationBarItem(icon: Icon(Icons.add), label: ""),
+                BottomNavigationBarItem(icon: Icon(Icons.list_sharp), label: ""),
+              ],
+            ),
+          )
         ],
       ),
     );
