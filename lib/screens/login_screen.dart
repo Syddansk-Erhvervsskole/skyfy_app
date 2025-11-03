@@ -1,8 +1,9 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/helpers/login_helper.dart';
+import 'package:skyfy_app/helpers/user_helper.dart';
 import 'package:skyfy_app/screens/main_layout.dart';
+import 'package:flutter/material.dart';
+import 'dart:io';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen>
   final storage = const FlutterSecureStorage();
 
   final loginHelper = LoginHelper();
+  final userHelper = UserHelper();
 
   bool isLogin = true;
 
@@ -115,6 +117,53 @@ class _LoginScreenState extends State<LoginScreen>
         pageBuilder: (_, __, ___) => const MainLayout(),
       ),
     );
+  }
+
+  Future<void> Register() async {
+    if (isLoading) return;
+    setState(() => isLoading = true);
+
+    String email = _emailController.text;
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    final response;
+    try {
+      response = await userHelper.register(email, username, password);
+      print('Registration successful: $response');
+    } catch (e) {
+      final errorMessage = e.toString().contains('HandshakeException') ||
+              e.toString().contains('SocketException') ||
+              e.toString().contains('Connection timed out')
+          ? 'Server is not responding. Please try again later.'
+          : 'Registration failed. Please check your details.';
+
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      setState(() => isLoading = false);
+      return;
+    }
+
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('Registration successful! Please log in.'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    _passwordController.clear();
+
+    setState(() {
+      isLoading = false;
+      isLogin = true;
+    });
   }
 
   @override
@@ -223,7 +272,11 @@ class _LoginScreenState extends State<LoginScreen>
                                     ? null
                                     : () {
                                         if (_formKey.currentState!.validate()) {
-                                          Login();
+                                          if (isLogin) {
+                                            Login();
+                                          } else {
+                                            Register();
+                                          }
                                         }
                                       },
                                 style: ElevatedButton.styleFrom(
