@@ -183,7 +183,6 @@ class _MiniPlayerState extends State<MiniPlayer> {
                       ),
                     ),
 
-                    // Next ✅ uses playlist logic when available
                     IconButton(
                       onPressed: () {
                         if (widget.onNext != null) {

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 abstract class ApiHelper {
-  static String baseUrl = 'http://10.130.54.39:5298';
+  static String baseUrl = 'http://10.130.54.32:5298';
   // final String baseUrl = 'https://10.130.54.39:7225';
 
   Future<dynamic> get(String endpoint) async {

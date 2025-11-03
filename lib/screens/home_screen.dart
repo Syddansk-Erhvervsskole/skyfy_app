@@ -27,14 +27,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void fetchSongs() async {
     // Temporary demo
-    setState(() {
-      songs = [
-        Content(id: 101, name: "Fallen Leaves", imageUrl: "https://content.gucca.dk/covers/400/d/i/dire-straits-original-recording-remastered_107412.jpg"),
-        Content(id: 102, name: "Starfall", imageUrl: "https://i.ebayimg.com/00/s/MTYwMFgxNjAw/z/tmkAAOSwwQdkdfh7/\$_57.JPG?set_id=880000500F"),
-        Content(id: 103, name: "Deep Blue", imageUrl: "https://cdn.hmv.com/r/w-640/hmv/files/da/da430a77-070d-439e-8c9c-899644a137df.jpg"),
-        Content(id: 104, name: "City Lights"),
-      ];
-    });
+    // setState(() {
+    //   songs = [
+    //     Content(id: 101, name: "Fallen Leaves", imageUrl: "https://content.gucca.dk/covers/400/d/i/dire-straits-original-recording-remastered_107412.jpg"),
+    //     Content(id: 102, name: "Starfall", imageUrl: "https://i.ebayimg.com/00/s/MTYwMFgxNjAw/z/tmkAAOSwwQdkdfh7/\$_57.JPG?set_id=880000500F"),
+    //     Content(id: 103, name: "Deep Blue", imageUrl: "https://cdn.hmv.com/r/w-640/hmv/files/da/da430a77-070d-439e-8c9c-899644a137df.jpg"),
+    //     Content(id: 104, name: "City Lights"),
+    //   ];
+    // });
 
     try {
       final data = await contentHelper.getAllContent();
