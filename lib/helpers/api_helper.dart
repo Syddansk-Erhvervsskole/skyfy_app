@@ -1,19 +1,29 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 abstract class ApiHelper {
   static String baseUrl = 'http://10.130.54.32:5298';
   // final String baseUrl = 'https://10.130.54.39:7225';
-
+  final storage = const FlutterSecureStorage();
+  
   Future<dynamic> get(String endpoint) async {
     final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
     return _handleResponse(response);
   }
 
   Future<dynamic> post(String endpoint, [dynamic body]) async {
+
+
+    
+    var auth_token = await storage.read(key: "auth_token");
+
     final response = await http.post(
       Uri.parse('$baseUrl/$endpoint'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer $auth_token"
+        },
       body: body != null ? jsonEncode(body) : null,
     );
     return _handleResponse(response);

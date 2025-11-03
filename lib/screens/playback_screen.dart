@@ -94,7 +94,7 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                // ✅ CLOSE BUTTON (top right)
+
                 Padding(
                   padding: const EdgeInsets.only(top: 8, right: 8),
                   child: Align(
@@ -110,7 +110,6 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
                   ),
                 ),
 
-                // ✅ Album cover
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: AspectRatio(
@@ -127,7 +126,6 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
 
                 const Spacer(),
 
-                // ✅ Title + Artist + Playlist btn
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 22),
                   child: Row(
@@ -169,7 +167,6 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
 
                 const SizedBox(height: 20),
 
-                // ✅ Progress slider
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: StreamBuilder<Duration>(
@@ -209,7 +206,7 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
                           ),
                           Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 22),
+                                const EdgeInsets.symmetric(horizontal: 5),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
