@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:skyfy_app/helpers/mini_player.dart';
 import 'package:skyfy_app/models/Content.dart';
+import 'package:skyfy_app/screens/upload_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
 
@@ -28,6 +29,7 @@ class _MainLayoutState extends State<MainLayout> {
 
     pages.addAll([
       HomeScreen(onSongSelected: playSong),
+      const UploadScreen(),
       const ProfileScreen(),
     ]);
 

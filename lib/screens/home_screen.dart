@@ -157,16 +157,18 @@ Expanded(
                   const SizedBox(height: 8),
 
 
-                  Text(
-                    song.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                Text(
+                      song.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+
                 ],
               ),
             );
