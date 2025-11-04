@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:skyfy_app/models/Content.dart';
@@ -30,6 +31,10 @@ class _MiniPlayerState extends State<MiniPlayer> {
   Color lastC1 = const Color(0xFF1B1E26);
   Color lastC2 = const Color(0xFF101318);
   final Color fallbackAccent = const Color(0xFF4F98FF);
+  final storage = const FlutterSecureStorage();
+
+
+
 
   @override
   void didUpdateWidget(covariant MiniPlayer oldWidget) {
@@ -38,6 +43,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
       _extractColors();
     }
   }
+
 
   Future<void> _extractColors() async {
     final img = widget.currentSong?.imageUrl;
