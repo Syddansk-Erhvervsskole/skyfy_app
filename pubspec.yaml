@@ -43,6 +43,7 @@ dependencies:
   palette_generator: ^0.3.3+7
   file_picker: ^10.3.3
   linear_progress_bar: ^1.2.0
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:

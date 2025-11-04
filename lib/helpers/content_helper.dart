@@ -5,9 +5,21 @@ import 'api_helper.dart';
 
 class ContentHelper extends ApiHelper {
 
-  Future<dynamic> getAllContent() async {
-    return await get('Content/all');
-    // return await post('Authorization/Login', data);
+Future<dynamic> getAllContent() async {
+  return await get('Content/all');
+
+}
+
+Future<dynamic> getAllWeatherContent(int code) async {
+    return await get('Content/weather/$code/10');
+
+  }
+
+
+Future<dynamic> searchContent(String text) async {
+  var res = await get('Content/search/$text');
+    return res;
+
   }
 
 

@@ -86,8 +86,8 @@ class _UploadScreenState extends State<UploadScreen> {
       return;
     }
 
-    await Future.delayed(const Duration(seconds: 10));
-    //await contentHelper.uploadContent(_songNameController.text, songBytes);
+    // await Future.delayed(const Duration(seconds: 10));
+    await contentHelper.uploadContent(_songNameController.text, songBytes);
 
     setState(() {
       isLoading = false;
