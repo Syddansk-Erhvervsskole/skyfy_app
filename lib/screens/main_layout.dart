@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:skyfy_app/helpers/mini_player.dart';
+import 'package:skyfy_app/helpers/weather_helper.dart';
 import 'package:skyfy_app/models/Content.dart';
 import 'package:skyfy_app/screens/upload_screen.dart';
 import 'home_screen.dart';
@@ -20,6 +22,7 @@ class _MainLayoutState extends State<MainLayout> {
   final AudioPlayer player = AudioPlayer();
   Content? currentSong;
   late StreamSubscription<PlayerState> _playerSub;
+  final storage = const FlutterSecureStorage();
 
   final pages = [];
 
@@ -53,9 +56,13 @@ class _MainLayoutState extends State<MainLayout> {
 
   Future<void> playSong(Content song) async {
     setState(() => currentSong = song);
-
+    var weatherCode = (await WeatherHelper.getCurrentWeatherCode(55.39, 10.38)).toString();
     try {
-      await player.setAudioSource(AudioSource.uri(Uri.parse(song.streamUrl)));
+      var auth_token = await storage.read(key: "auth_token");
+      await player.setAudioSource(AudioSource.uri(Uri.parse(song.streamUrl), headers: {
+        "Authorization": "Bearer ${auth_token}",
+        "Weather_Code": weatherCode,
+      }));
       await player.play();
     } catch (_) {
       setState(() => currentSong = null);

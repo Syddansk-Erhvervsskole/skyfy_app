@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +18,16 @@ class _UploadScreenState extends State<UploadScreen> {
   final _formKey = GlobalKey<FormState>();
   final contentHelper = new ContentHelper();
   final TextEditingController _songNameController = TextEditingController();
+  bool isLoading = false;
 
   Uint8List? coverBytes;
   Uint8List? songBytes;
   String? songFileName;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   Future<void> pickCover() async {
     final result = await FilePicker.platform.pickFiles(
@@ -64,6 +71,10 @@ class _UploadScreenState extends State<UploadScreen> {
 
   void uploadSong() async {
     if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      isLoading = true;
+    });
+
     if (coverBytes == null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Select a cover image")));
@@ -75,107 +86,120 @@ class _UploadScreenState extends State<UploadScreen> {
       return;
     }
 
-    await contentHelper.uploadContent(_songNameController.text, songBytes);
+    await Future.delayed(const Duration(seconds: 10));
+    //await contentHelper.uploadContent(_songNameController.text, songBytes);
 
-     Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-        pageBuilder: (_, __, ___) => const MainLayout(),
-      ),
-    );
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Container(
-                  width: 250,
-                  child: Column(
-                  children: [
-                    GestureDetector(
-                      onTap: pickCover,
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Container(
-
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white24),
-                            borderRadius: BorderRadius.circular(8),
-
-                            color: Colors.white10,
-                            image: coverBytes != null
-                                ? DecorationImage(
-                                    image: MemoryImage(coverBytes!),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
+            child: isLoading
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Uploading...",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
                           ),
-                          child: coverBytes == null
-                              ? const Center(
-                                  child: Icon(Icons.image, color: Colors.white54),
-                                )
-                              : null,
+                        ),
+                        SizedBox(height: 10),
+                        CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ],
+                    ),
+                  )
+                : Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      Container(
+                        width: 250,
+                        child: Column(
+                          children: [
+                            GestureDetector(
+                              onTap: pickCover,
+                              child: AspectRatio(
+                                aspectRatio: 1,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.white24),
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.white10,
+                                    image: coverBytes != null
+                                        ? DecorationImage(
+                                            image: MemoryImage(coverBytes!),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                  ),
+                                  child: coverBytes == null
+                                      ? const Center(
+                                          child: Icon(Icons.image,
+                                              color: Colors.white54),
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-
-                  ],
-                ),),
-
-
-                const SizedBox(height: 20),
-
-        
-                ElevatedButton(
-                  onPressed: pickSong,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white10,
-                    minimumSize: const Size.fromHeight(50),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: pickSong,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white10,
+                          minimumSize: const Size.fromHeight(50),
+                        ),
+                        child: Text(
+                          songFileName ?? "Select MP3 File",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _songNameController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: _inputDecoration("Track Name"),
+                        validator: (v) =>
+                            v!.isEmpty ? "Enter a track name" : null,
+                      ),
+                      const Spacer(),
+                      ElevatedButton(
+                        onPressed: uploadSong,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(50),
+                          backgroundColor:
+                              const Color.fromRGBO(79, 152, 255, 0.192),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          "Upload",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    songFileName ?? "Select MP3 File",
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _songNameController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: _inputDecoration("Track Name"),
-                  validator: (v) =>
-                      v!.isEmpty ? "Enter a track name" : null,
-                ),
-
-                const Spacer(),
-
-          
-                ElevatedButton(
-                  onPressed: uploadSong,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
-                    backgroundColor: Colors.blueAccent,
-                  ),
-                  child: const Text(
-                    "Upload Track",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
