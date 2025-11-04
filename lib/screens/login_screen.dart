@@ -151,6 +151,10 @@ class _LoginScreenState extends State<LoginScreen>
       return;
     }
 
+    _passwordController.clear();
+
+    if (!mounted) return;
+
     scaffoldMessenger.showSnackBar(
       const SnackBar(
         content: Text('Registration successful! Please log in.'),
@@ -158,12 +162,29 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
 
-    _passwordController.clear();
-
     setState(() {
       isLoading = false;
       isLogin = true;
     });
+  }
+
+  Future<void> resetPassword(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Password Reset"),
+        content: const Text(
+          "Please contact support to reset your password.\n"
+          "Email: support@skyfy.com"
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -245,28 +266,6 @@ class _LoginScreenState extends State<LoginScreen>
                                 obscure: true,
                               ),
                               const SizedBox(height: 14),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    isLogin
-                                        ? "Don't have an account? "
-                                        : "Already have an account? ",
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() => isLogin = !isLogin);
-                                    },
-                                    child: Text(
-                                      isLogin ? "Register" : "Login",
-                                      style: const TextStyle(
-                                        color: Color.fromRGBO(79, 152, 255, 1),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
                               ElevatedButton(
                                 onPressed: isLoading
                                     ? null
@@ -306,6 +305,55 @@ class _LoginScreenState extends State<LoginScreen>
                                         ),
                                       ),
                               ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    isLogin
+                                        ? "Don't have an account? "
+                                        : "Already have an account? ",
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() => isLogin = !isLogin);
+                                    },
+                                    child: Text(
+                                      isLogin ? "Register" : "Login",
+                                      style: const TextStyle(
+                                        color: Color.fromRGBO(79, 152, 255, 1),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              isLogin
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          isLogin
+                                              ? "Forgot your password? "
+                                              : "",
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            resetPassword(context);
+                                          },
+                                          child: Text(
+                                            isLogin ? "Reset Password" : "",
+                                            style: const TextStyle(
+                                              color: Color.fromRGBO(
+                                                  79, 152, 255, 1),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : const SizedBox.shrink(),
                             ],
                           ),
                         ),

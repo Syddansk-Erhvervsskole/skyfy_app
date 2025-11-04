@@ -54,9 +54,6 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _checkAuth() async {
     String? token = await storage.read(key: "auth_token");
 
-
-
-
     if (!mounted) return;
   // Navigator.pushReplacement(
   //       context,
