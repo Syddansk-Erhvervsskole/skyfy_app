@@ -16,7 +16,7 @@ class UploadScreen extends StatefulWidget {
 class _UploadScreenState extends State<UploadScreen> {
   final storage = const FlutterSecureStorage();
   final _formKey = GlobalKey<FormState>();
-  final contentHelper = new ContentHelper();
+  final contentHelper = ContentHelper();
   final TextEditingController _songNameController = TextEditingController();
   bool isLoading = false;
 
@@ -127,7 +127,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 : Column(
                     children: [
                       const SizedBox(height: 20),
-                      Container(
+                      SizedBox(
                         width: 250,
                         child: Column(
                           children: [

@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:skyfy_app/helpers/location_helper.dart';
 import 'package:skyfy_app/helpers/mini_player.dart';
 import 'package:skyfy_app/helpers/weather_helper.dart';
 import 'package:skyfy_app/models/Content.dart';
@@ -22,13 +20,15 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int navIndex = 0;
   String query = "";
+
   final AudioPlayer player = AudioPlayer();
   final ConcatenatingAudioSource playlist = ConcatenatingAudioSource(children: []);
-
   final List<Content> songQueue = [];
-  Content? currentSong;
-  final storage = const FlutterSecureStorage();
 
+  Content? currentSong;
+  ValueNotifier<Content?> currentSongNotifier = ValueNotifier(null);
+
+  final storage = const FlutterSecureStorage();
   late StreamSubscription<PlayerState> _playerSub;
   late StreamSubscription<int?> _indexSub;
 
@@ -41,16 +41,21 @@ class _MainLayoutState extends State<MainLayout> {
     super.initState();
 
     pages.addAll([
-      HomeScreen(onSongSelected: playSong),
+      HomeScreen(
+        onSongSelected: playSong,
+        onPlayAll: playAllSongs,
+        songNotifier: currentSongNotifier, 
+      ),
       const UploadScreen(),
       const ProfileScreen(),
       SearchScreen(
         key: searchKey,
         onSongSelected: playSong,
         initialQuery: query,
+        songNotifier: currentSongNotifier, 
       ),
+      const ProfileScreen(),
     ]);
-
 
     _playerSub = player.playerStateStream.listen((_) {
       if (mounted) setState(() {});
@@ -58,7 +63,9 @@ class _MainLayoutState extends State<MainLayout> {
 
     _indexSub = player.currentIndexStream.listen((index) {
       if (index != null && index < songQueue.length && mounted) {
-        setState(() => currentSong = songQueue[index]);
+        currentSong = songQueue[index];
+        currentSongNotifier.value = currentSong; 
+        setState(() {});
       }
     });
   }
@@ -71,49 +78,71 @@ class _MainLayoutState extends State<MainLayout> {
     super.dispose();
   }
 
-  String formatDuration(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return "$m:$s";
-  }
-
   Future<void> playSong(Content song) async {
     try {
-      // Add to queue if missing
       if (!songQueue.contains(song)) {
         songQueue.add(song);
-        setState(() => currentSong = song);
 
         var token = await storage.read(key: "auth_token");
-        Position? pos = await LocationsHelper.getUserLocation();
-
-        String weatherCode = "0";
-        if (pos != null) {
-          weatherCode = (await WeatherHelper.getCurrentWeatherCode(pos.latitude, pos.longitude)).toString();
-        }
+        int weatherCode = await WeatherHelper.getCurrentWeatherCode();
 
         await playlist.add(
           AudioSource.uri(
             Uri.parse(song.streamUrl),
             headers: {
               "Authorization": "Bearer $token",
-              "Weather_Code": weatherCode,
+              "Weather_Code": weatherCode.toString(),
             },
+            tag: song,
           ),
         );
       }
 
       final index = songQueue.indexOf(song);
 
-      await player.setAudioSource(
-        playlist,
-        initialIndex: index,
-        preload: true,
-      );
+      await player.setAudioSource(playlist, initialIndex: index, preload: true);
+
+      currentSong = song;
+      currentSongNotifier.value = song;
 
       await player.play();
+      setState(() {});
+    } catch (_) {
+      currentSong = null;
+      currentSongNotifier.value = null;
+    }
+  }
+
+  Future<void> playAllSongs(List<Content> songs) async {
+    try {
+      playlist.clear();
+      songQueue.clear();
+
+      var token = await storage.read(key: "auth_token");
+      int weatherCode = await WeatherHelper.getCurrentWeatherCode();
+
+      for (var s in songs) {
+        songQueue.add(s);
+        await playlist.add(
+          AudioSource.uri(
+            Uri.parse(s.streamUrl),
+            headers: {
+              "Authorization": "Bearer $token",
+              "Weather_Code": weatherCode.toString(),
+            },
+            tag: s,
+          ),
+        );
+      }
+
+      currentSong = songs.first;
+      currentSongNotifier.value = currentSong;
+
+      await player.setAudioSource(playlist, preload: true);
+      await player.play();
+      setState(() {});
     } catch (e) {
-      setState(() => currentSong = null);
+      debugPrint("Error playAllSongs: $e");
     }
   }
 
@@ -121,7 +150,6 @@ class _MainLayoutState extends State<MainLayout> {
     query = value;
 
     if (navIndex == 3 && searchKey.currentState != null) {
-
       searchKey.currentState!.runSearch(value);
       setState(() {});
       return;
@@ -131,16 +159,13 @@ class _MainLayoutState extends State<MainLayout> {
       key: searchKey,
       onSongSelected: playSong,
       initialQuery: value,
+      songNotifier: currentSongNotifier, 
     );
 
-    setState(() {
-      navIndex = 3;
-    });
+    setState(() => navIndex = 3);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (searchKey.currentState != null) {
-        searchKey.currentState!.runSearch(value);
-      }
+      searchKey.currentState?.runSearch(value);
     });
   }
 
@@ -156,33 +181,20 @@ class _MainLayoutState extends State<MainLayout> {
             Image.asset('lib/assets/SmallWithNoSubtitle.png', width: 100),
             const SizedBox(width: 8),
             Expanded(
-              child: Container(
-                height: 35,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: SearchBar(
-                  hintText: 'Search songs, artists, albums...',
-                  textStyle: MaterialStateProperty.all(
-                    const TextStyle(color: Colors.white),
-                  ),
-                  controller: TextEditingController(text: query),
-                  hintStyle: MaterialStateProperty.all(
-                    const TextStyle(color: Colors.white54),
-                  ),
-                  backgroundColor: MaterialStateProperty.all(
-                    const Color.fromARGB(221, 39, 39, 39),
-                  ),
-                  elevation: MaterialStateProperty.all(0),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(500),
-                    ),
-                  ),
-                  leading: const Icon(Icons.search, color: Colors.white54, size: 20),
-                  padding: MaterialStateProperty.all(
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
-                  ),
-                  onSubmitted: _submitSearch,
+              child: SearchBar(
+                hintText: 'Search songs, artists, albums...',
+                controller: TextEditingController(text: query),
+                onSubmitted: _submitSearch,
+                hintStyle: WidgetStateProperty.all(const TextStyle(color: Colors.white54)),
+                textStyle: WidgetStateProperty.all(const TextStyle(color: Colors.white)),
+                backgroundColor: WidgetStateProperty.all(
+                  const Color.fromARGB(221, 39, 39, 39),
                 ),
+                elevation: WidgetStateProperty.all(0),
+                shape: WidgetStateProperty.all(
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                ),
+                leading: const Icon(Icons.search, color: Colors.white54, size: 20),
               ),
             ),
           ],
@@ -197,28 +209,23 @@ class _MainLayoutState extends State<MainLayout> {
           MiniPlayer(
             player: player,
             currentSong: currentSong,
-            formatDuration: formatDuration,
+            formatDuration: (d) =>
+                "${d.inMinutes.remainder(60).toString().padLeft(2, '0')}:${d.inSeconds.remainder(60).toString().padLeft(2, '0')}",
           ),
-          Theme(
-            data: Theme.of(context).copyWith(
-              splashFactory: NoSplash.splashFactory,
-              bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-                backgroundColor: Color.fromARGB(255, 17, 17, 17),
-                selectedItemColor: Colors.blueAccent,
-                unselectedItemColor: Colors.white54,
-                type: BottomNavigationBarType.fixed, // 4 tabs stable colors
-              ),
-            ),
-            child: BottomNavigationBar(
-              currentIndex: navIndex,
-              onTap: (i) => setState(() => navIndex = i),
-              items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-                BottomNavigationBarItem(icon: Icon(Icons.add), label: ""),
-                BottomNavigationBarItem(icon: Icon(Icons.list_sharp), label: ""),
-                BottomNavigationBarItem(icon: Icon(Icons.search), label: ""),
-              ],
-            ),
+          BottomNavigationBar(
+            currentIndex: navIndex,
+            onTap: (i) => setState(() => navIndex = i),
+            backgroundColor: const Color.fromARGB(255, 17, 17, 17),
+            selectedItemColor: Colors.blueAccent,
+            unselectedItemColor: Colors.white54,
+            type: BottomNavigationBarType.fixed,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
+              BottomNavigationBarItem(icon: Icon(Icons.add), label: ""),
+              BottomNavigationBarItem(icon: Icon(Icons.list), label: ""),
+              BottomNavigationBarItem(icon: Icon(Icons.search), label: ""),
+              BottomNavigationBarItem(icon: Icon(Icons.person), label: ""),
+            ],
           ),
         ],
       ),

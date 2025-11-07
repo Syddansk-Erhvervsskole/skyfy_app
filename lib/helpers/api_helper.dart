@@ -3,7 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 abstract class ApiHelper {
-  static String baseUrl = 'http://10.130.54.32:5298';
+  static String baseUrl = 'https://skyfy.kruino.com';
 
   // final String baseUrl = 'https://10.130.54.39:7225';
   final storage = const FlutterSecureStorage();
@@ -17,13 +17,13 @@ abstract class ApiHelper {
 
 
     
-    var auth_token = await storage.read(key: "auth_token");
+    var authToken = await storage.read(key: "auth_token");
 
     final response = await http.post(
       Uri.parse('$baseUrl/$endpoint'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': "Bearer $auth_token"
+        'Authorization': "Bearer $authToken"
         },
       body: body != null ? jsonEncode(body) : null,
     );

@@ -39,24 +39,27 @@ class _MiniPlayerState extends State<MiniPlayer> {
 
   Future<void> _extractColors() async {
     final img = widget.currentSong?.imageUrl;
+
     if (img == null || img.isEmpty) {
-      setState(() {
-        c1 = c2 = const Color.fromARGB(255, 17, 17, 17);
-      });
+      setState(() => c1 = c2 = const Color(0xFF111111));
       return;
     }
 
     try {
-      final pal = await PaletteGenerator.fromImageProvider(NetworkImage(img));
-      final d = pal.dominantColor?.color ?? lastC1;
-      final dv = pal.darkVibrantColor?.color ?? lastC2;
+      final pal = await PaletteGenerator.fromImageProvider(
+        NetworkImage(img),
+        maximumColorCount: 15,
+      );
+
+      final d = pal.dominantColor?.color ?? const Color(0xFF111111);
+      final dv = pal.darkVibrantColor?.color ?? d;
 
       setState(() {
         c1 = lastC1 = d.withOpacity(.9);
         c2 = lastC2 = dv.withOpacity(.85);
       });
     } catch (_) {
-      setState(() => c1 = c2 = const Color.fromARGB(255, 17, 17, 17));
+      setState(() => c1 = c2 = const Color(0xFF111111));
     }
   }
 

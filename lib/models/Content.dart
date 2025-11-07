@@ -19,7 +19,7 @@ class Content {
     return Content(
       id: json["id"],
       name: json["name"],
-      imageUrl: json["imageUrl"],
+      imageUrl: json["cover_Art"],
       artist: json["artist"],
     );
   }
@@ -29,7 +29,7 @@ class Content {
     return {
       "id": id,
       "name": name,
-      "imageUrl": imageUrl,
+      "cover_Art": imageUrl,
       "artist": artist,
     };
   }

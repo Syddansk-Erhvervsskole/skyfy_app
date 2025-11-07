@@ -25,20 +25,45 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
   Color lastC1 = const Color(0xFF1B1E26);
   Color lastC2 = const Color(0xFF101318);
 
+  Content? _song;
+
   @override
   void initState() {
     super.initState();
+
+    _song = widget.currentSong;
     _extractColors();
+
+    widget.player.currentIndexStream.listen((index) {
+      if (index == null ||
+          widget.player.sequence.isEmpty ||
+          index >= widget.player.sequence.length ||
+          index < 0) {
+        return;
+      }
+
+      final tag = widget.player.sequence[index].tag;
+      if (tag is Content) {
+        setState(() => _song = tag);
+        _extractColors();
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant PlaybackScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentSong?.imageUrl != widget.currentSong?.imageUrl) {
+      _song = widget.currentSong;
+      _extractColors();
+    }
   }
 
   Future<void> _extractColors() async {
-    final imageUrl = widget.currentSong?.imageUrl;
+    final imageUrl = _song?.imageUrl;
 
     if (imageUrl == null || imageUrl.isEmpty) {
-      setState(() {
-        c1 = const Color.fromARGB(255, 17, 17, 17);
-        c2 = const Color.fromARGB(255, 17, 17, 17);
-      });
+      setState(() => c1 = c2 = const Color(0xFF111111));
       return;
     }
 
@@ -48,24 +73,17 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
         maximumColorCount: 16,
       );
 
-      Color newC1 = palette.dominantColor?.color ??
-          palette.vibrantColor?.color ??
-          lastC1;
-      Color newC2 = palette.darkVibrantColor?.color ??
-          palette.vibrantColor?.color ??
-          lastC2;
+      final d = palette.dominantColor?.color ?? const Color(0xFF111111);
+      final dv = palette.darkVibrantColor?.color ?? d;
 
       setState(() {
-        lastC1 = newC1;
-        lastC2 = newC2;
-        c1 = newC1.withOpacity(0.9);
-        c2 = newC2.withOpacity(0.85);
+        lastC1 = d;
+        lastC2 = dv;
+        c1 = d.withOpacity(0.9);
+        c2 = dv.withOpacity(0.85);
       });
     } catch (_) {
-      setState(() {
-        c1 = const Color.fromARGB(255, 17, 17, 17);
-        c2 = const Color.fromARGB(255, 17, 17, 17);
-      });
+      setState(() => c1 = c2 = const Color(0xFF111111));
     }
   }
 
@@ -77,8 +95,7 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
   @override
   Widget build(BuildContext context) {
     final blue = const Color(0xFF4F98FF);
-    final hasImage = widget.currentSong?.imageUrl != null &&
-        widget.currentSong!.imageUrl!.isNotEmpty;
+    final hasImage = _song?.imageUrl != null && _song!.imageUrl!.isNotEmpty;
 
     return Scaffold(
       body: Container(
@@ -94,7 +111,6 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
           child: SafeArea(
             child: Column(
               children: [
-
                 Padding(
                   padding: const EdgeInsets.only(top: 8, right: 8),
                   child: Align(
@@ -117,7 +133,7 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(18),
                       child: SongCover(
-                        imageUrl: widget.currentSong?.imageUrl,
+                        imageUrl: _song?.imageUrl,
                         size: 300,
                       ),
                     ),
@@ -135,7 +151,7 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.currentSong?.name ?? "",
+                              _song?.name ?? "",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 24,
@@ -144,7 +160,7 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              widget.currentSong?.artist ?? "Unknown Artist",
+                              _song?.artist ?? "Unknown Artist",
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 17,
@@ -178,8 +194,7 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
                           ? 0.0
                           : pos.inMilliseconds / total.inMilliseconds;
 
-                      final sliderColor =
-                          hasImage ? _lerp(c2, c1, t) : blue;
+                      final sliderColor = hasImage ? _lerp(c2, c1, t) : blue;
 
                       return Column(
                         children: [
@@ -198,15 +213,15 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
                               value: pos.inMilliseconds
                                   .clamp(0, total.inMilliseconds)
                                   .toDouble(),
-                              onChanged: (v) => widget.player
-                                  .seek(Duration(milliseconds: v.toInt())),
+                              onChanged: (v) => widget.player.seek(
+                                Duration(milliseconds: v.toInt()),
+                              ),
                               activeColor: sliderColor,
                               inactiveColor: Colors.white30,
                             ),
                           ),
                           Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -227,7 +242,6 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
 
                 const SizedBox(height: 18),
 
-                // ✅ Controls
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
