@@ -9,14 +9,18 @@ abstract class ApiHelper {
   final storage = const FlutterSecureStorage();
   
   Future<dynamic> get(String endpoint) async {
-    final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
+        
+    var authToken = await storage.read(key: "auth_token");
+    final response = await http.get(Uri.parse('$baseUrl/$endpoint'),
+        headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer $authToken"
+        });
     return _handleResponse(response);
   }
 
   Future<dynamic> post(String endpoint, [dynamic body]) async {
-
-
-    
+  
     var authToken = await storage.read(key: "auth_token");
 
     final response = await http.post(
@@ -31,25 +35,42 @@ abstract class ApiHelper {
   }
 
   Future<dynamic> put(String endpoint, dynamic body) async {
+    var authToken = await storage.read(key: "auth_token");
+
     final response = await http.put(
       Uri.parse('$baseUrl/$endpoint'),
-      headers: {'Content-Type': 'application/json'},
+          headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer $authToken"
+        },
       body: jsonEncode(body),
     );
     return _handleResponse(response);
   }
 
   Future<dynamic> patch(String endpoint, dynamic body) async {
+    var authToken = await storage.read(key: "auth_token");
+
+
     final response = await http.patch(
       Uri.parse('$baseUrl/$endpoint'),
-      headers: {'Content-Type': 'application/json'},
+          headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer $authToken"
+        },
       body: jsonEncode(body),
     );
     return _handleResponse(response);
   }
 
   Future<dynamic> delete(String endpoint) async {
-    final response = await http.delete(Uri.parse('$baseUrl/$endpoint'));
+    var authToken = await storage.read(key: "auth_token");
+
+    final response = await http.delete(Uri.parse('$baseUrl/$endpoint'),
+        headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer $authToken"
+        },);
     return _handleResponse(response);
   }
 

@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:skyfy_app/helpers/mini_player.dart';
 import 'package:skyfy_app/helpers/weather_helper.dart';
 import 'package:skyfy_app/models/Content.dart';
+import 'package:skyfy_app/screens/playlists_screen.dart';
 import 'package:skyfy_app/screens/search_screen.dart';
 import 'package:skyfy_app/screens/upload_screen.dart';
 import 'home_screen.dart';
@@ -47,7 +48,11 @@ class _MainLayoutState extends State<MainLayout> {
         songNotifier: currentSongNotifier, 
       ),
       const UploadScreen(),
-      const ProfileScreen(),
+      PlaylistsScreen(
+        onSongSelected: playSong,
+        onPlayAll: playAllSongs,
+        songNotifier: currentSongNotifier, 
+      ),
       SearchScreen(
         key: searchKey,
         onSongSelected: playSong,
@@ -88,10 +93,9 @@ class _MainLayoutState extends State<MainLayout> {
 
         await playlist.add(
           AudioSource.uri(
-            Uri.parse(song.streamUrl),
+            Uri.parse(song.streamUrl(weatherCode.toString())),
             headers: {
               "Authorization": "Bearer $token",
-              "Weather_Code": weatherCode.toString(),
             },
             tag: song,
           ),
@@ -114,7 +118,7 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Future<void> playAllSongs(List<Content> songs) async {
-    try {
+    try { 
       playlist.clear();
       songQueue.clear();
 
@@ -125,7 +129,7 @@ class _MainLayoutState extends State<MainLayout> {
         songQueue.add(s);
         await playlist.add(
           AudioSource.uri(
-            Uri.parse(s.streamUrl),
+            Uri.parse(s.streamUrl((await WeatherHelper.getCurrentWeatherCode()).toString())),
             headers: {
               "Authorization": "Bearer $token",
               "Weather_Code": weatherCode.toString(),

@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:typed_data';
  import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -22,6 +23,54 @@ Future<dynamic> searchContent(String text) async {
 
   }
 
+Future<dynamic> getPlaylistSongs(int id) async {
+  var res = await get('Playlist/Content/$id');
+    return res;
+
+  }
+
+Future<dynamic> getPlaylists() async {
+  var res = await get('Playlist/all');
+    return res;
+
+  }
+Future<dynamic> CreatePlaylist(String name) async {
+  var res = await post('Playlist/Create/$name');
+    return res;
+
+  }
+
+Future<dynamic> DeletePlaylist(int id) async {
+  var res = await delete('Playlist/$id');
+    return res;
+
+  }
+
+Future<dynamic> PlaylistAdd(int songid, int playlistID) async {
+  print(songid);
+    print(playlistID);
+  var res = await post('Playlist/$playlistID/add/content/$songid');
+    return res;
+
+  }
+
+Future<dynamic> PlaylistRemove(int songid, int playlistID) async {
+  var res = await delete('Playlist/$playlistID/remove/content/$songid');
+    return res;
+
+  }
+
+Future<dynamic> getLikedSongs() async {
+  return get("Like");
+}
+
+Future<dynamic> likeSong(int id) async {
+  return post("Like/$id", {});
+}
+
+Future<dynamic> unlikeSong(int id) async {
+  return delete("Like/$id");
+}
 
 
 Future<dynamic> uploadContent(String name, Uint8List? songBytes) async {

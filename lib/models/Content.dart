@@ -6,12 +6,15 @@ class Content {
   final String name;
   final String? imageUrl;
   final String? artist;
+  final bool? liked;
 
   Content({
     required this.id,
     required this.name,
+    required this.liked,
     this.imageUrl,
     this.artist,
+  
   });
 
 
@@ -21,6 +24,7 @@ class Content {
       name: json["name"],
       imageUrl: json["cover_Art"],
       artist: json["artist"],
+      liked: json["Liked"]
     );
   }
 
@@ -34,5 +38,5 @@ class Content {
     };
   }
 
-  String get streamUrl => "${ApiHelper.baseUrl}/Content/$id/playlist.m3u8";
+  String streamUrl(String weather) => "${ApiHelper.baseUrl}/Content/$id/$weather/playlist.m3u8";
 }
