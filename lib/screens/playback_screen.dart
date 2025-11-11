@@ -63,9 +63,12 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
     if (_song == null) return;
     if (isLiked) {
       await contentHelper.unlikeSong(_song!.id);
+
     } else {
       await contentHelper.likeSong(_song!.id);
+
     }
+    widget.currentSong?.liked = !widget.currentSong!.liked;
     setState(() => isLiked = !isLiked);
   }
 
@@ -145,8 +148,6 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(_song?.name ?? "", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 6),
-                            Text(_song?.artist ?? "Unknown Artist", style: const TextStyle(color: Colors.white70, fontSize: 17)),
                           ],
                         ),
                       ),

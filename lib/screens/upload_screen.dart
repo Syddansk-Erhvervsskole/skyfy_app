@@ -1,10 +1,8 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/helpers/content_helper.dart';
-import 'package:skyfy_app/screens/main_layout.dart';
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key});

@@ -30,6 +30,20 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
   }
 
   Future<void> addToPlaylist(Playlist playlist) async {
+
+    var content = ((await contentHelper.getPlaylistSongs(playlist.id)) as List).map((json) => Content.fromJson(json)).toList();
+    if(content.any((element) => element.id == widget.song.id)){
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.red,
+        content: Text("Playlist already contains song"),
+        duration: const Duration(seconds: 2),
+      ),);
+       return;
+    }
+
+
     await contentHelper.PlaylistAdd(widget.song.id, playlist.id);
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
