@@ -49,7 +49,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     if (widget.playlistId == -1) {
       await contentHelper.unlikeSong(song.id);
     } else {
-      await contentHelper.PlaylistRemove(widget.playlistId, song.id);
+      await contentHelper.PlaylistRemove(song.id,widget.playlistId);
     }
     loadSongs();
     ScaffoldMessenger.of(context).showSnackBar(

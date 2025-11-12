@@ -39,7 +39,6 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   http: ^1.5.0
   just_audio: ^0.10.5
-  just_audio_windows: ^0.2.0
   palette_generator: ^0.3.3+7
   file_picker: ^10.3.3
   linear_progress_bar: ^1.2.0

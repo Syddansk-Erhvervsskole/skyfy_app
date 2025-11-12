@@ -55,6 +55,7 @@ Future<dynamic> PlaylistAdd(int songid, int playlistID) async {
   }
 
 Future<dynamic> PlaylistRemove(int songid, int playlistID) async {
+
   var res = await delete('Playlist/$playlistID/remove/content/$songid');
     return res;
 
@@ -72,21 +73,42 @@ Future<dynamic> unlikeSong(int id) async {
   return delete("Like/$id");
 }
 
+Future<void> uploadAllContent(String name, Uint8List song, Uint8List cover) async {
+  final url = Uri.parse("${ApiHelper.baseUrl}/Content/upload/all");
+  var req = http.MultipartRequest("POST", url);
 
-Future<dynamic> uploadContent(String name, Uint8List? songBytes) async {
+  req.fields["name"] = name;
 
+  req.files.add(http.MultipartFile.fromBytes("song", song, filename: "$name.mp3"));
+  req.files.add(http.MultipartFile.fromBytes("cover", cover, filename: "cover.jpg"));
+
+  final token = await storage.read(key: 'auth_token');
+  req.headers["Authorization"] = "Bearer $token";
+
+  var res = await req.send();
+  if (res.statusCode != 200) {
+    throw Exception("Upload failed");
+  }
+}
+
+Future<dynamic> uploadContent(
+  String name,
+  Uint8List? songBytes, {
+  Uint8List? coverBytes, // optional cover image
+}) async {
+
+  //Create content entry first
   final data = {'name': name};
   var result = await post('Content', data); 
-
   if (result == null || songBytes == null) return;
 
   String contentId = result['id'].toString(); 
-  final url = Uri.parse("${ApiHelper.baseUrl}/Content/$contentId/upload"); 
 
+  //Upload audio
+  final uploadSongUrl = Uri.parse("${ApiHelper.baseUrl}/Content/$contentId/upload"); 
+  var songReq = http.MultipartRequest("PUT", uploadSongUrl);
 
-  var request = http.MultipartRequest("PUT", url);
-
-  request.files.add(
+  songReq.files.add(
     http.MultipartFile.fromBytes(
       'file', 
       songBytes,
@@ -95,21 +117,46 @@ Future<dynamic> uploadContent(String name, Uint8List? songBytes) async {
     ),
   );
 
-
   final token = await storage.read(key: 'token');
   if (token != null) {
-    request.headers['Authorization'] = "Bearer $token";
+    songReq.headers['Authorization'] = "Bearer $token";
   }
 
+  var songStream = await songReq.send();
+  var songRes = await http.Response.fromStream(songStream);
 
-  var streamedResponse = await request.send();
-  var response = await http.Response.fromStream(streamedResponse);
-
-  if (response.statusCode != 200) {
-    throw Exception("Upload failed: ${response.statusCode} - ${response.body}");
+  if (songRes.statusCode != 200) {
+    throw Exception("Song upload failed: ${songRes.statusCode} - ${songRes.body}");
   }
 
-  return response.body;
+//Upload cover image
+  if (coverBytes != null) {
+    final uploadCoverUrl = Uri.parse("${ApiHelper.baseUrl}/Content/$contentId/upload/cover"); 
+    var coverReq = http.MultipartRequest("POST", uploadCoverUrl);
+
+    coverReq.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        coverBytes,
+        filename: "cover.jpg",
+        contentType: MediaType("image", "jpeg"),
+      ),
+    );
+
+    if (token != null) {
+      coverReq.headers['Authorization'] = "Bearer $token";
+    }
+
+    var coverStream = await coverReq.send();
+    var coverRes = await http.Response.fromStream(coverStream);
+
+    if (coverRes.statusCode != 200) {
+      throw Exception("Cover upload failed: ${coverRes.statusCode} - ${coverRes.body}");
+    }
+  }
+
+  return songRes.body;
 }
+
 
 } 

@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 abstract class ApiHelper {
   static String baseUrl = 'https://skyfy.kruino.com';
 
-  // final String baseUrl = 'https://10.130.54.39:7225';
+  // static String baseUrl = 'https://10.130.54.29:7225';
   final storage = const FlutterSecureStorage();
   
   Future<dynamic> get(String endpoint) async {
