@@ -6,7 +6,7 @@ class Content {
   final String name;
   final String? imageUrl;
   final String? artist;
-  final bool? liked;
+  bool liked;
 
   Content({
     required this.id,
@@ -24,7 +24,7 @@ class Content {
       name: json["name"],
       imageUrl: json["cover_Art"],
       artist: json["artist"],
-      liked: json["Liked"]
+      liked: json["liked"]
     );
   }
 

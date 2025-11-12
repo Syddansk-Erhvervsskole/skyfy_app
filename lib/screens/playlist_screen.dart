@@ -86,15 +86,48 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                       itemBuilder: (_, i) {
                         final song = playlistSongs[i];
                         final playing = current?.id == song.id;
-                        return GestureDetector(
-                          onLongPress: () => removeSong(song),
-                          child: ListTile(
-                            onTap: () => widget.onSongSelected(song),
-                            leading: SongCover(imageUrl: song.imageUrl, size: 48),
-                            title: Text(song.name, style: TextStyle(color: playing ? Colors.blueAccent : Colors.white, fontWeight: FontWeight.w600)),
-                            trailing: Icon(playing ? Icons.graphic_eq : Icons.play_arrow, color: playing ? Colors.blueAccent : Colors.white),
-                          ),
-                        );
+                       return GestureDetector(
+  onLongPress: () => removeSong(song),
+  child: ListTile(
+    onTap: () => widget.onSongSelected(song),
+    leading: SongCover(imageUrl: song.imageUrl, size: 48),
+    title: Text(
+      song.name,
+      style: TextStyle(
+        color: playing ? Colors.blueAccent : Colors.white,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+    trailing: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          playing ? Icons.graphic_eq : Icons.play_arrow,
+          color: playing ? Colors.blueAccent : Colors.white,
+        ),
+        PopupMenuButton(
+          icon: const Icon(Icons.more_vert, color: Colors.white),
+          color: const Color(0xFF1C1F26),
+          onSelected: (value) {
+            if (value == "remove") removeSong(song);
+          },
+          itemBuilder: (_) => [
+            PopupMenuItem(
+              value: "remove",
+              child: Text(
+                widget.playlistId == -1
+                    ? "Remove from Liked"
+                    : "Remove from Playlist",
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ),
+);
+
                       },
                     );
                   },
