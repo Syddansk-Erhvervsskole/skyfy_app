@@ -218,12 +218,12 @@ class _LoginScreenState extends State<LoginScreen>
                           _logoOffset.value.dx * 80,
                           _logoOffset.value.dy * 80,
                         ),
+
                         child: Column(
                           children: [
-                            Image.asset(
-                              'lib/assets/SmallWithNoSubtitle.png',
-                              width: 300,
-                            ),
+                             SvgPicture.asset(
+                              'lib/assets/SmallLogoNoCaption.svg',
+                              width: 300,),
                             const SizedBox(height: 5),
                             const Text(
                               "The weather based music app",
