@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'login_screen.dart';
-import 'profile_screen.dart';
+import 'package:skyfy_app/helpers/content_helper.dart';
+import 'package:skyfy_app/helpers/weather_helper.dart';
+import 'package:skyfy_app/models/Content.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:skyfy_app/widgets/song_cover.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Function(Content song) onSongSelected;
+  final Function(List<Content> songs) onPlayAll;
+  final ValueNotifier<Content?> songNotifier; 
+
+  const HomeScreen({
+    super.key,
+    required this.onSongSelected,
+    required this.onPlayAll,
+    required this.songNotifier,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -13,68 +24,113 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final storage = const FlutterSecureStorage();
-  String? currentSong;
+  final contentHelper = ContentHelper();
 
-  final List<Map<String, String>> songs = [
-    {'title': 'Morning Sun'},
-    {'title': 'Rainy Nights'},
-    {'title': 'Ocean Breeze'},
-    {'title': 'City Lights'},
-    {'title': 'Mountain Echo'},
-    {'title': 'Desert Mirage'},
-    {'title': 'Autumn Dreams'},
-  ];
+  bool isLoading = true;
+  List<Content> songsBasedOnWeather = [];
+  String weatherName = "";
 
-  final List<String> playlists = [
-    'Playlist 1',
-    'Playlist 2',
-    'Playlist 3',
-    'Playlist 4'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchSongsWeather();
+  }
 
-  void showAddToPlaylistDialog(String songTitle) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF121212),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        final controller = TextEditingController();
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Add "$songTitle" to Playlist',
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+  void fetchSongsWeather() async {
+    try {
+      final wc = await WeatherHelper.getCurrentWeatherCode();
+      final data = await contentHelper.getAllWeatherContent(wc);
+      final wn = await WeatherHelper.getWeatherDescription();
+
+      songsBasedOnWeather =
+          (data as List).map((json) => Content.fromJson(json)).toList();
+      print(songsBasedOnWeather.map((e) => e.toJson()));
+      setState(() {
+        weatherName = wn;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint("HomeScreen error: $e");
+    }
+  }
+
+  Widget songTile(Content song, Content? current) {
+    bool playing = current?.id == song.id;
+
+    return GestureDetector(
+      onTap: () => widget.onSongSelected(song),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: playing
+            ? BoxDecoration(
+                color: const Color.fromARGB(50, 79, 152, 255),
+
+              )
+            : null,
+        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Row(
+          children: [
+           ClipRRect(
+  borderRadius: BorderRadius.circular(6),
+  child: SizedBox(
+    width: 50,
+    height: 50,
+    child: SongCover(
+      imageUrl: song.imageUrl,
+      size: 50,
+    ),
+  ),
+),
+
+
+            const SizedBox(width: 10),
+
+            Expanded(
+              child: Text(
+                song.name,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: playing ? Colors.blueAccent : Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              const SizedBox(height: 16),
+            ),
 
-              ...playlists.map((p) => ListTile(
-                title: Text(p, style: const TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('"$songTitle" added to "$p"')),
-                  );
-                },
-              )),
+            IconButton(
+              icon: playing
+                  ? const Icon(Icons.graphic_eq,
+                      color: Colors.blueAccent, size: 28)
+                  : const Icon(Icons.play_arrow_rounded,
+                      color: Colors.white, size: 32),
+              onPressed: () => widget.onSongSelected(song),
+            )
+          ],
+        ),
+      ),)
+    );
+  }
 
-              const Divider(color: Colors.white24),
-
-              ListTile(
-                leading: const Icon(Icons.add, color: Colors.white),
-                title: const Text('Create New Playlist', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
+  Widget sectionTitle(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        );
-      },
+          const Spacer(),
+          !isLoading ? IconButton(
+            icon: const Icon(Icons.play_arrow_rounded,
+                color: Colors.white, size: 32),
+            onPressed: () => widget.onPlayAll(songsBasedOnWeather),
+          ) : const SizedBox.shrink(),
+        ],
+      ),
     );
   }
 
@@ -82,97 +138,66 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: SvgPicture.asset(
-            'lib/assets/SmallLogoNoCaption.svg',
-            width: 100,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
-            },
-          ),
-        ],
-      ),
-
-      body: Column(
-        children: [
-          GestureDetector(
-            onTap: () {
-              print("Rain banner clicked!");
-            },
-            child: Container(
-              width: double.infinity,
-              height: 150,
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF0A0A0A),
-                    Color.fromRGBO(79, 152, 255, 0.23),
-                  ],
-                ),
-              ),
-              child: SvgPicture.asset('lib/assets/RainBanner.svg', fit: BoxFit.contain),
-            ),
-          ),
-  // GestureDetector(
-  //           onTap: () {
-  //             print("Rain banner clicked!");
-  //           },
-  //           child: Container(
-  //             width: double.infinity,
-  //             height: 150,
-  //             margin: const EdgeInsets.only(bottom: 8),
-  //             decoration: const BoxDecoration(
-  //               gradient: LinearGradient(
-  //                 begin: Alignment.topCenter,
-  //                 end: Alignment.bottomRight,
-  //                 colors: [
-  //                   Color(0xFF0A0A0A),
-  //                   Color.fromRGBO(79, 152, 255, 0.23),
-  //                 ],
-  //               ),
-  //             ),
-  //             child: SvgPicture.asset('lib/assets/RainBanner.svg', fit: BoxFit.contain),
-  //           ),
-  //         ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(0),
-              itemCount: songs.length,
-              itemBuilder: (context, index) {
-                final song = songs[index];
-                final isPlaying = currentSong == song['title'];
-
-                return Card(
-                  color: const Color.fromARGB(113, 33, 33, 33),
-                  margin: const EdgeInsets.symmetric(vertical: 2),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    title: Text(song['title']!, style: const TextStyle(color: Colors.white)),
-                    trailing: IconButton(
-                      icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white),
-                      onPressed: () {
-                        setState(() {
-                          currentSong = isPlaying ? null : song['title'];
-                        });
-                      },
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Container(
+                  height: 150,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 10, 10, 10),
+                        Color.fromRGBO(79, 152, 255, 0.25),
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: SvgPicture.asset('lib/assets/RainBanner.svg'),
+                  ),
+                ),
+              ),
+
+              sectionTitle(weatherName),
+
+              if (isLoading)
+                const Center(
+                    child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(color: Colors.white),
+                ))
+              else if (songsBasedOnWeather.isEmpty)
+                const Center(
+                    child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text("No songs for current weather",
+                      style: TextStyle(color: Colors.white54)),
+                ))
+              else
+                ValueListenableBuilder<Content?>(
+                  valueListenable: widget.songNotifier,
+                  builder: (_, current, __) {
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: songsBasedOnWeather.length,
+                      padding: const EdgeInsets.symmetric(horizontal: 0),
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: 10),
+                      itemBuilder: (context, i) =>
+                          songTile(songsBasedOnWeather[i], current),
+                    );
+                  },
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,13 +1,12 @@
-import 'dart:io';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/helpers/login_helper.dart';
-import 'package:skyfy_app/screens/home_screen.dart';
+import 'package:skyfy_app/helpers/user_helper.dart';
+import 'package:skyfy_app/screens/main_layout.dart';
+import 'package:flutter/material.dart';
+import 'dart:io';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -22,7 +21,8 @@ class _LoginScreenState extends State<LoginScreen>
   final _passwordController = TextEditingController();
   final storage = const FlutterSecureStorage();
 
-  final loginAPI = LoginHelper();
+  final loginHelper = LoginHelper();
+  final userHelper = UserHelper();
 
   bool isLogin = true;
 
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     final response;
     try {
-      response = await loginAPI.login(username, password);
+      response = await loginHelper.login(username, password);
       print('Login successful: $response');
     } catch (e) {
       final errorMessage = e.toString().contains('HandshakeException') ||
@@ -114,7 +114,75 @@ class _LoginScreenState extends State<LoginScreen>
       PageRouteBuilder(
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
-        pageBuilder: (_, __, ___) => const HomeScreen(),
+        pageBuilder: (_, __, ___) => const MainLayout(),
+      ),
+    );
+  }
+
+  Future<void> Register() async {
+    if (isLoading) return;
+    setState(() => isLoading = true);
+
+    String email = _emailController.text;
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    final response;
+    try {
+      response = await userHelper.register(email, username, password);
+      print('Registration successful: $response');
+    } catch (e) {
+      final errorMessage = e.toString().contains('HandshakeException') ||
+              e.toString().contains('SocketException') ||
+              e.toString().contains('Connection timed out')
+          ? 'Server is not responding. Please try again later.'
+          : 'Registration failed. Please check your details.';
+
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      setState(() => isLoading = false);
+      return;
+    }
+
+    _passwordController.clear();
+
+    if (!mounted) return;
+
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('Registration successful! Please log in.'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    setState(() {
+      isLoading = false;
+      isLogin = true;
+    });
+  }
+
+  Future<void> resetPassword(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Password Reset"),
+        content: const Text(
+          "Please contact support to reset your password.\n"
+          "Email: support@skyfy.com"
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
       ),
     );
   }
@@ -198,34 +266,16 @@ class _LoginScreenState extends State<LoginScreen>
                                 obscure: true,
                               ),
                               const SizedBox(height: 14),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    isLogin
-                                        ? "Don't have an account? "
-                                        : "Already have an account? ",
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() => isLogin = !isLogin);
-                                    },
-                                    child: Text(
-                                      isLogin ? "Register" : "Login",
-                                      style: const TextStyle(
-                                        color: Color.fromRGBO(79, 152, 255, 1),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
                               ElevatedButton(
                                 onPressed: isLoading
                                     ? null
                                     : () {
                                         if (_formKey.currentState!.validate()) {
-                                          Login();
+                                          if (isLogin) {
+                                            Login();
+                                          } else {
+                                            Register();
+                                          }
                                         }
                                       },
                                 style: ElevatedButton.styleFrom(
@@ -255,6 +305,55 @@ class _LoginScreenState extends State<LoginScreen>
                                         ),
                                       ),
                               ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    isLogin
+                                        ? "Don't have an account? "
+                                        : "Already have an account? ",
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() => isLogin = !isLogin);
+                                    },
+                                    child: Text(
+                                      isLogin ? "Register" : "Login",
+                                      style: const TextStyle(
+                                        color: Color.fromRGBO(79, 152, 255, 1),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              isLogin
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          isLogin
+                                              ? "Forgot your password? "
+                                              : "",
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            resetPassword(context);
+                                          },
+                                          child: Text(
+                                            isLogin ? "Reset Password" : "",
+                                            style: const TextStyle(
+                                              color: Color.fromRGBO(
+                                                  79, 152, 255, 1),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : const SizedBox.shrink(),
                             ],
                           ),
                         ),
