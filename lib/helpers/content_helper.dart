@@ -78,15 +78,31 @@ Future<void> uploadAllContent(String name, Uint8List song, Uint8List cover) asyn
 
   req.fields["name"] = name;
 
-  req.files.add(http.MultipartFile.fromBytes("song", song, filename: "$name.mp3"));
-  req.files.add(http.MultipartFile.fromBytes("cover", cover, filename: "cover.jpg"));
+  req.files.add(http.MultipartFile.fromBytes(
+    "song",
+    song,
+    filename: "$name.mp3",
+    contentType: MediaType("audio", "mpeg"), 
+  ));
+
+  req.files.add(http.MultipartFile.fromBytes(
+    "cover",
+    cover,
+    filename: "cover.jpg",
+    contentType: MediaType("image", "jpeg"),    
+  ));
 
   final token = await storage.read(key: 'auth_token');
   req.headers["Authorization"] = "Bearer $token";
 
-  var res = await req.send();
+  final res = await req.send();
+
+  print("Status: ${res.statusCode}");
+  final responseBody = await res.stream.bytesToString();
+  print("Body: $responseBody");
+
   if (res.statusCode != 200) {
-    throw Exception("Upload failed");
+    throw Exception("Upload failed: $responseBody");
   }
 }
 

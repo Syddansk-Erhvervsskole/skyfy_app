@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:skyfy_app/helpers/token_helper.dart';
+import 'package:skyfy_app/helpers/user_helper.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -13,8 +15,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final storage = const FlutterSecureStorage();
-
-  String userId = "";
+  final userhelper = new UserHelper();
+  String? userId = "";
   String username = "";
 
   @override
@@ -25,7 +27,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfileFromToken() async {
     final token = await storage.read(key: "auth_token");
-
+    final useridtemp =  await TokenHelper.getUserId();
+    setState(() {
+      userId = useridtemp;
+    });
     if (token == null) {
       _logout();
       return;
@@ -64,11 +69,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (token == null) return;
 
     try {
-      final res = await http.delete(
-        Uri.parse(""), //TODO: Change to api url
-        headers: {"Authorization": "Bearer $token"},
-      );
-
+      var res = await userhelper.deleteUser();
+      print(res);
       if (res.statusCode == 200) {
         await storage.deleteAll();
         if (mounted) {

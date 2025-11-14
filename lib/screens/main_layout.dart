@@ -83,39 +83,44 @@ class _MainLayoutState extends State<MainLayout> {
     super.dispose();
   }
 
-  Future<void> playSong(Content song) async {
-    try {
-      if (!songQueue.contains(song)) {
-        songQueue.add(song);
+Future<void> playSong(Content song) async {
+  try {
+    if (!songQueue.contains(song)) {
+      songQueue.add(song);
 
-        var token = await storage.read(key: "auth_token");
-        int weatherCode = await WeatherHelper.getCurrentWeatherCode();
+      var token = await storage.read(key: "auth_token");
+      int weatherCode = await WeatherHelper.getCurrentWeatherCode();
+      var uri =   Uri.parse(song.streamUrl(weatherCode.toString()));
 
-        await playlist.add(
-          AudioSource.uri(
-            Uri.parse(song.streamUrl(weatherCode.toString())),
-            headers: {
+      await playlist.add(
+        AudioSource.uri(
+          uri,
+          headers: {
               "Authorization": "Bearer $token",
-            },
-            tag: song,
-          ),
-        );
-      }
-
-      final index = songQueue.indexOf(song);
-
-      await player.setAudioSource(playlist, initialIndex: index, preload: true);
-
-      currentSong = song;
-      currentSongNotifier.value = song;
-
-      await player.play();
-      setState(() {});
-    } catch (_) {
-      currentSong = null;
-      currentSongNotifier.value = null;
+          },
+          tag: song,
+        ),
+      );
     }
-  }
+
+    final index = songQueue.indexOf(song);
+
+    await player.setAudioSource(playlist, initialIndex: index, preload: true);
+
+    currentSong = song;
+    currentSongNotifier.value = song;
+
+    await player.play();
+    setState(() {});
+  } catch (e) {
+
+
+  currentSong = null;
+  currentSongNotifier.value = null;
+}
+
+}
+
 
   Future<void> playAllSongs(List<Content> songs) async {
     try { 
@@ -123,7 +128,6 @@ class _MainLayoutState extends State<MainLayout> {
       songQueue.clear();
 
       var token = await storage.read(key: "auth_token");
-      int weatherCode = await WeatherHelper.getCurrentWeatherCode();
 
       for (var s in songs) {
         songQueue.add(s);
@@ -132,7 +136,6 @@ class _MainLayoutState extends State<MainLayout> {
             Uri.parse(s.streamUrl((await WeatherHelper.getCurrentWeatherCode()).toString())),
             headers: {
               "Authorization": "Bearer $token",
-              "Weather_Code": weatherCode.toString(),
             },
             tag: s,
           ),
@@ -145,9 +148,7 @@ class _MainLayoutState extends State<MainLayout> {
       await player.setAudioSource(playlist, preload: true);
       await player.play();
       setState(() {});
-    } catch (e) {
-      debugPrint("Error playAllSongs: $e");
-    }
+    } catch (_) {}
   }
 
   void _submitSearch(String value) {
@@ -177,36 +178,11 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset('lib/assets/SmallWithNoSubtitle.png', width: 100),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SearchBar(
-                hintText: 'Search songs, artists, albums...',
-                controller: TextEditingController(text: query),
-                onSubmitted: _submitSearch,
-                hintStyle: WidgetStateProperty.all(const TextStyle(color: Colors.white54)),
-                textStyle: WidgetStateProperty.all(const TextStyle(color: Colors.white)),
-                backgroundColor: WidgetStateProperty.all(
-                  const Color.fromARGB(221, 39, 39, 39),
-                ),
-                elevation: WidgetStateProperty.all(0),
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                ),
-                leading: const Icon(Icons.search, color: Colors.white54, size: 20),
-              ),
-            ),
-          ],
-        ),
+        title: Image.asset('lib/assets/SmallWithNoSubtitle.png', width: 100),
       ),
-
       body: pages[navIndex],
-
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

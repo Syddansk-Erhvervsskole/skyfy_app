@@ -81,9 +81,7 @@ class SearchScreenState extends State<SearchScreen> {
                     : Image.network(song.imageUrl!, fit: BoxFit.cover),
               ),
             ),
-
             const SizedBox(width: 12),
-
             Expanded(
               child: Text(
                 song.name,
@@ -96,7 +94,6 @@ class SearchScreenState extends State<SearchScreen> {
                 ),
               ),
             ),
-
             IconButton(
               icon: isPlaying
                   ? const Icon(Icons.graphic_eq,
@@ -118,6 +115,30 @@ class SearchScreenState extends State<SearchScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: SearchBar(
+                hintText: 'Search songs, artists, albums...',
+                controller: _controller,
+                onChanged: (v) {
+                  if (v.isEmpty) {
+                    setState(() => results = []);
+                    return;
+                  }
+                },
+                onSubmitted: (v) => runSearch(v),
+                hintStyle: WidgetStateProperty.all(const TextStyle(color: Colors.white54)),
+                textStyle: WidgetStateProperty.all(const TextStyle(color: Colors.white)),
+                backgroundColor: WidgetStateProperty.all(
+                  const Color.fromARGB(221, 39, 39, 39),
+                ),
+                elevation: WidgetStateProperty.all(0),
+                shape: WidgetStateProperty.all(
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                ),
+                leading: const Icon(Icons.search, color: Colors.white54, size: 20),
+              ),
+            ),
             Expanded(
               child: loading
                   ? const Center(
@@ -128,7 +149,7 @@ class SearchScreenState extends State<SearchScreen> {
                       builder: (_, current, __) {
                         if (results.isEmpty) {
                           return const Center(
-                            child: Text("No results",
+                            child: Text("Search for music",
                                 style: TextStyle(
                                     color: Colors.white54, fontSize: 16)),
                           );

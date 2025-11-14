@@ -60,6 +60,44 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
     }
   }
 
+  Future<void> createPlaylist() async {
+    final controller = TextEditingController();
+
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.black87,
+        title: const Text("New Playlist", style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: "Playlist name",
+            hintStyle: TextStyle(color: Colors.white54),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Cancel", style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text("Create", style: TextStyle(color: Colors.blueAccent)),
+          ),
+        ],
+      ),
+    );
+
+    if (name == null || name.isEmpty) return;
+
+    await contentHelper.CreatePlaylist(name);
+    fetchPlaylists();
+  }
+
   Widget playlistTile(Playlist playlist) {
     return Dismissible(
       key: ValueKey(playlist.id),
@@ -98,6 +136,13 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      floatingActionButton: selectedPlaylist == null
+          ? FloatingActionButton(
+              backgroundColor: Colors.blueAccent,
+              child: const Icon(Icons.add, color: Colors.white),
+              onPressed: createPlaylist,
+            )
+          : null,
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,

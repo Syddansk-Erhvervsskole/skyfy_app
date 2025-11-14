@@ -144,25 +144,25 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Container(
-                  height: 150,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 10, 10, 10),
-                        Color.fromRGBO(79, 152, 255, 0.25),
-                      ],
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: SvgPicture.asset('lib/assets/RainBanner.svg'),
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.all(14),
+              //   child: Container(
+              //     height: 150,
+              //     decoration: BoxDecoration(
+              //       borderRadius: BorderRadius.circular(16),
+              //       gradient: const LinearGradient(
+              //         colors: [
+              //           Color.fromARGB(255, 10, 10, 10),
+              //           Color.fromRGBO(79, 152, 255, 0.25),
+              //         ],
+              //       ),
+              //     ),
+              //     child: Padding(
+              //       padding: const EdgeInsets.all(14),
+              //       child: SvgPicture.asset('lib/assets/RainBanner.svg'),
+              //     ),
+              //   ),
+              // ),
 
               sectionTitle(weatherName),
 

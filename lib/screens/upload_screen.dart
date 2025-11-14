@@ -63,59 +63,70 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 
   Future<void> uploadSong() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  if (coverBytes == null) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text("Select a cover image")));
-    return;
-  }
+    if (coverBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Select a cover image")));
+      return;
+    }
 
-  if (songBytes == null) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text("Select an MP3 file")));
-    return;
-  }
-
-  setState(() {
-    isUploading = true;
-    uploadComplete = false;
-  });
-
-  try {
-    await contentHelper.uploadAllContent(
-      _songNameController.text,
-      songBytes!,
-      coverBytes!,
-    );
+    if (songBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Select an MP3 file")));
+      return;
+    }
 
     setState(() {
-      isUploading = false;
-      uploadComplete = true;
+      isUploading = true;
+      uploadComplete = false;
     });
-  } catch (e) {
-    setState(() => isUploading = false);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text("Upload failed: $e")));
-  }
-}
 
+    try {
+      await contentHelper.uploadAllContent(
+        _songNameController.text,
+        songBytes!,
+        coverBytes!,
+      );
+
+      setState(() {
+        isUploading = false;
+        uploadComplete = true;
+      });
+    } catch (e) {
+      setState(() => isUploading = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Upload failed: $e")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: uploadComplete
-                ? _buildSuccess()
-                : isUploading
-                    ? _buildUploading()
-                    : _buildForm(),
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            double w = constraints.maxWidth;
+
+            double padding = w < 400 ? 12 : w < 700 ? 20 : 40;
+            double spacing = w < 400 ? 12 : 20;
+            double buttonHeight = w < 400 ? 48 : 55;
+
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(padding),
+              child: Center(
+                child: SizedBox(
+                  width: w < 600 ? double.infinity : 500,
+                  child: Form(
+                    key: _formKey,
+                    child: uploadComplete
+                        ? _buildSuccess(buttonHeight)
+                        : isUploading
+                            ? _buildUploading()
+                            : _buildForm(spacing, buttonHeight),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -132,118 +143,108 @@ class _UploadScreenState extends State<UploadScreen> {
             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
           ),
           SizedBox(height: 15),
-          Text(
-            "Uploading...",
-            style: TextStyle(fontSize: 18, color: Colors.white),
-          ),
+          Text("Uploading...", style: TextStyle(fontSize: 18, color: Colors.white)),
         ],
       ),
     );
   }
 
-  Widget _buildSuccess() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.check_circle, color: Colors.greenAccent, size: 80),
-          const SizedBox(height: 16),
-          const Text(
-            "Upload complete!",
-            style: TextStyle(fontSize: 20, color: Colors.white),
-          ),
-          const SizedBox(height: 25),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                uploadComplete = false;
-                _songNameController.clear();
-                songBytes = null;
-                coverBytes = null;
-                songFileName = null;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white10,
-              minimumSize: const Size.fromHeight(50),
-            ),
-            child: const Text("Upload Another", style: TextStyle(color: Colors.white)),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white10,
-              minimumSize: const Size.fromHeight(50),
-            ),
-            child: const Text("Back", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildForm() {
+  Widget _buildSuccess(double buttonHeight) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(height: 20),
-        GestureDetector(
-          onTap: pickCover,
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white24),
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.white10,
-                image: coverBytes != null
-                    ? DecorationImage(
-                        image: MemoryImage(coverBytes!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: coverBytes == null
-                  ? const Center(
-                      child: Icon(Icons.image, color: Colors.white54),
-                    )
-                  : null,
+        const Icon(Icons.check_circle, color: Colors.greenAccent, size: 80),
+        const SizedBox(height: 16),
+        const Text("Upload complete!", style: TextStyle(fontSize: 20, color: Colors.white)),
+        const SizedBox(height: 25),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              uploadComplete = false;
+              _songNameController.clear();
+              songBytes = null;
+              coverBytes = null;
+              songFileName = null;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white10,
+            minimumSize: Size.fromHeight(buttonHeight),
+          ),
+          child: const Text("Upload Another", style: TextStyle(color: Colors.white)),
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white10,
+            minimumSize: Size.fromHeight(buttonHeight),
+          ),
+          child: const Text("Back", style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildForm(double spacing, double buttonHeight) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(height: spacing),
+       GestureDetector(
+        onTap: pickCover,
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white10,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white24),
             ),
+            child: coverBytes == null
+                ? const Center(
+                    child: Icon(Icons.image, color: Colors.white54, size: 40),
+                  )
+                : Center(
+                    child: Image.memory(
+                      coverBytes!,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
           ),
         ),
-        const SizedBox(height: 20),
+      ),
+
+        SizedBox(height: spacing),
         ElevatedButton(
           onPressed: pickSong,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white10,
-            minimumSize: const Size.fromHeight(50),
+            minimumSize: Size.fromHeight(buttonHeight),
           ),
           child: Text(
             songFileName ?? "Select MP3 File",
             style: const TextStyle(color: Colors.white),
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: spacing),
         TextFormField(
           controller: _songNameController,
           style: const TextStyle(color: Colors.white),
           decoration: _inputDecoration("Track Name"),
           validator: (v) => v!.isEmpty ? "Enter a track name" : null,
         ),
-        const Spacer(),
+        SizedBox(height: spacing * 2),
         ElevatedButton(
           onPressed: uploadSong,
           style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(50),
+            minimumSize: Size.fromHeight(buttonHeight),
             backgroundColor: const Color.fromRGBO(79, 152, 255, 0.25),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          child: const Text(
-            "Upload",
-            style: TextStyle(fontSize: 18, color: Colors.white),
-          ),
+          child: const Text("Upload", style: TextStyle(fontSize: 18, color: Colors.white)),
         ),
       ],
     );
