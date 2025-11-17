@@ -13,7 +13,7 @@ class TokenHelper {
 
     final payload = base64Url.normalize(parts[1]);
     final decoded = json.decode(utf8.decode(base64Url.decode(payload)));
-    print(decoded);
+    // print(decoded);
     // **Claim name depends on what your API puts in the token**
     return decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ?? decoded["sub"];
   }

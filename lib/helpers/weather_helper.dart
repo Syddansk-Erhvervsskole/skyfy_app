@@ -6,7 +6,7 @@ import 'package:skyfy_app/helpers/location_helper.dart';
 class WeatherHelper {
   static const String _baseUrl = 'https://api.open-meteo.com/v1/forecast';
 
-  static int CachedWeatherCode = -1;
+  static int cachedWeatherCode = -1;
   static DateTime? _lastFetch;
 
   static const Map<int, String> weatherCodeNames = {
@@ -45,15 +45,15 @@ class WeatherHelper {
 
     if (_lastFetch != null &&
         DateTime.now().difference(_lastFetch!).inMinutes < 10 &&
-        CachedWeatherCode != -1) {
+        cachedWeatherCode != -1) {
 
-      return CachedWeatherCode;
+      return cachedWeatherCode;
     }
 
     try {
       Position? pos = await LocationsHelper.getUserLocation();
       if (pos == null) {
-          return CachedWeatherCode;
+          return cachedWeatherCode;
       }
 
       final url = Uri.parse(
@@ -72,7 +72,7 @@ class WeatherHelper {
         final code = weatherCodes[currentHour];
         
 
-        CachedWeatherCode = code;
+        cachedWeatherCode = code;
         _lastFetch = DateTime.now();
 
         return code;
@@ -81,7 +81,7 @@ class WeatherHelper {
       }
     } catch (e) {
 
-      if (CachedWeatherCode != -1) return CachedWeatherCode;
+      if (cachedWeatherCode != -1) return cachedWeatherCode;
       throw Exception('Error fetching weather data: $e');
     }
   }

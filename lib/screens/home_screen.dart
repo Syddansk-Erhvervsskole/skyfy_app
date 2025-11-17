@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skyfy_app/helpers/content_helper.dart';
 import 'package:skyfy_app/helpers/weather_helper.dart';
-import 'package:skyfy_app/models/Content.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:skyfy_app/models/content.dart';
 import 'package:skyfy_app/widgets/song_cover.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -44,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       songsBasedOnWeather =
           (data as List).map((json) => Content.fromJson(json)).toList();
-      print(songsBasedOnWeather.map((e) => e.toJson()));
       setState(() {
         weatherName = wn;
         isLoading = false;

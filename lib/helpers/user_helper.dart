@@ -9,7 +9,7 @@ class UserHelper extends ApiHelper {
 
   Future<dynamic> deleteUser() async {
     var id = await TokenHelper.getUserId();
-    print(id);
+    // print(id);
     return await delete('User/$id');
   }
 } 

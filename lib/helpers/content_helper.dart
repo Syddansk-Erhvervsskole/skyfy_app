@@ -33,27 +33,25 @@ Future<dynamic> getPlaylists() async {
     return res;
 
   }
-Future<dynamic> CreatePlaylist(String name) async {
+Future<dynamic> createPlaylist(String name) async {
   var res = await post('Playlist/Create/$name');
     return res;
 
   }
 
-Future<dynamic> DeletePlaylist(int id) async {
+Future<dynamic> deletePlaylist(int id) async {
   var res = await delete('Playlist/$id');
     return res;
 
   }
 
-Future<dynamic> PlaylistAdd(int songid, int playlistID) async {
-  print(songid);
-    print(playlistID);
+Future<dynamic> playlistAdd(int songid, int playlistID) async {
   var res = await post('Playlist/$playlistID/add/content/$songid');
     return res;
 
   }
 
-Future<dynamic> PlaylistRemove(int songid, int playlistID) async {
+Future<dynamic> playlistRemove(int songid, int playlistID) async {
 
   var res = await delete('Playlist/$playlistID/remove/content/$songid');
     return res;
@@ -97,9 +95,9 @@ Future<void> uploadAllContent(String name, Uint8List song, Uint8List cover) asyn
 
   final res = await req.send();
 
-  print("Status: ${res.statusCode}");
+  // print("Status: ${res.statusCode}");
   final responseBody = await res.stream.bytesToString();
-  print("Body: $responseBody");
+  // print("Body: $responseBody");
 
   if (res.statusCode != 200) {
     throw Exception("Upload failed: $responseBody");

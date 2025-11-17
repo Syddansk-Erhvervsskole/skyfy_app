@@ -43,6 +43,7 @@ dependencies:
   file_picker: ^10.3.3
   linear_progress_bar: ^1.2.0
   geolocator: ^14.0.2
+  http_parser: ^4.1.2
 
 
 dev_dependencies:
@@ -71,7 +72,7 @@ flutter:
   assets:
      - lib/assets/RainDrops.svg
      - lib/assets/RainBanner.svg
-     - lib/assets/LogoSmallWithCaption.svg
+     - lib/assets/SmallLogoNoCaption.svg
      - lib/assets/SmallWithNoSubtitle.png
      - lib/assets/SmallWithSubtitle.png
      - lib/assets/LargeTextBottom.png

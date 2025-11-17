@@ -1,6 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:skyfy_app/helpers/content_helper.dart';
-import '../models/Content.dart';
+import '../models/content.dart';
 import '../widgets/song_cover.dart';
 
 class PlaylistScreen extends StatefulWidget {
@@ -49,7 +51,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     if (widget.playlistId == -1) {
       await contentHelper.unlikeSong(song.id);
     } else {
-      await contentHelper.PlaylistRemove(song.id,widget.playlistId);
+      await contentHelper.playlistRemove(song.id,widget.playlistId);
     }
     loadSongs();
     ScaffoldMessenger.of(context).showSnackBar(

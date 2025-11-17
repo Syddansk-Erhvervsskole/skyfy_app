@@ -1,10 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:skyfy_app/helpers/mini_player.dart';
 import 'package:skyfy_app/helpers/weather_helper.dart';
-import 'package:skyfy_app/models/Content.dart';
+import 'package:skyfy_app/models/content.dart';
 import 'package:skyfy_app/screens/playlists_screen.dart';
 import 'package:skyfy_app/screens/search_screen.dart';
 import 'package:skyfy_app/screens/upload_screen.dart';
@@ -149,29 +151,6 @@ Future<void> playSong(Content song) async {
       await player.play();
       setState(() {});
     } catch (_) {}
-  }
-
-  void _submitSearch(String value) {
-    query = value;
-
-    if (navIndex == 3 && searchKey.currentState != null) {
-      searchKey.currentState!.runSearch(value);
-      setState(() {});
-      return;
-    }
-
-    pages[3] = SearchScreen(
-      key: searchKey,
-      onSongSelected: playSong,
-      initialQuery: value,
-      songNotifier: currentSongNotifier, 
-    );
-
-    setState(() => navIndex = 3);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      searchKey.currentState?.runSearch(value);
-    });
   }
 
   @override

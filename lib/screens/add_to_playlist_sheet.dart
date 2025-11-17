@@ -1,7 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:skyfy_app/helpers/content_helper.dart';
-import 'package:skyfy_app/models/Playlist.dart';
-import 'package:skyfy_app/models/Content.dart';
+import 'package:skyfy_app/models/playlist.dart';
+import 'package:skyfy_app/models/content.dart';
 
 class AddToPlaylistSheet extends StatefulWidget {
   final Content song;
@@ -44,7 +46,7 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
     }
 
 
-    await contentHelper.PlaylistAdd(widget.song.id, playlist.id);
+    await contentHelper.playlistAdd(widget.song.id, playlist.id);
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

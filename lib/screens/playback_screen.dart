@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:skyfy_app/models/Content.dart';
+import 'package:skyfy_app/models/content.dart';
 import 'package:skyfy_app/screens/add_to_playlist_sheet.dart';
 import 'package:skyfy_app/widgets/song_cover.dart';
 import 'package:skyfy_app/helpers/content_helper.dart';
@@ -88,8 +88,8 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
       setState(() {
         lastC1 = d;
         lastC2 = dv;
-        c1 = d.withOpacity(0.9);
-        c2 = dv.withOpacity(0.85);
+        c1 = d.withValues(alpha: 0.9);
+        c2 = dv.withValues(alpha: 0.85);
       });
     } catch (_) {
       setState(() => c1 = c2 = const Color(0xFF111111));
@@ -193,7 +193,7 @@ class _PlaybackScreenState extends State<PlaybackScreen> {
                               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
                               overlayShape: SliderComponentShape.noOverlay,
                               thumbColor: sliderColor,
-                              overlayColor: sliderColor.withOpacity(.4),
+                              overlayColor: sliderColor.withValues(alpha: 0.4),
                             ),
                             child: Slider(
                               min: 0,

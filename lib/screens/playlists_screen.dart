@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:skyfy_app/models/Playlist.dart';
+import 'package:skyfy_app/models/playlist.dart';
 import 'package:skyfy_app/helpers/content_helper.dart';
 import 'playlist_screen.dart';
-import '../models/Content.dart';
+import '../models/content.dart';
 
 class PlaylistsScreen extends StatefulWidget {
   final Function(Content song) onSongSelected;
@@ -54,7 +54,7 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
       ),
     );
     if (confirm == true) {
-      await contentHelper.DeletePlaylist(playlist.id);
+      await contentHelper.deletePlaylist(playlist.id);
       fetchPlaylists();
       setState(() => selectedPlaylist = null);
     }
@@ -94,7 +94,7 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
 
     if (name == null || name.isEmpty) return;
 
-    await contentHelper.CreatePlaylist(name);
+    await contentHelper.createPlaylist(name);
     fetchPlaylists();
   }
 
@@ -107,7 +107,7 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
         return false;
       },
       background: Container(
-        decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.8), borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.80), borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.only(right: 20),
         alignment: Alignment.centerRight,
         child: const Icon(Icons.delete, color: Colors.white),
@@ -139,8 +139,8 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
       floatingActionButton: selectedPlaylist == null
           ? FloatingActionButton(
               backgroundColor: Colors.blueAccent,
-              child: const Icon(Icons.add, color: Colors.white),
               onPressed: createPlaylist,
+              child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
       appBar: AppBar(

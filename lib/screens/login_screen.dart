@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   bool isLoading = false;
-  Future<void> Login() async {
+  Future<void> login() async {
     if (isLoading) return;
     setState(() => isLoading = true);
 
@@ -79,10 +79,10 @@ class _LoginScreenState extends State<LoginScreen>
 
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    final response;
+    dynamic response;
     try {
       response = await loginHelper.login(username, password);
-      print('Login successful: $response');
+      // print('Login successful: $response');
     } catch (e) {
       final errorMessage = e.toString().contains('HandshakeException') ||
               e.toString().contains('SocketException') ||
@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Future<void> Register() async {
+  Future<void> register() async {
     if (isLoading) return;
     setState(() => isLoading = true);
 
@@ -130,10 +130,10 @@ class _LoginScreenState extends State<LoginScreen>
 
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    final response;
+    // dynamic response;
     try {
-      response = await userHelper.register(email, username, password);
-      print('Registration successful: $response');
+      await userHelper.register(email, username, password);
+      // print('Registration successful: $response');
     } catch (e) {
       final errorMessage = e.toString().contains('HandshakeException') ||
               e.toString().contains('SocketException') ||
@@ -273,9 +273,9 @@ class _LoginScreenState extends State<LoginScreen>
                                     : () {
                                         if (_formKey.currentState!.validate()) {
                                           if (isLogin) {
-                                            Login();
+                                            login();
                                           } else {
-                                            Register();
+                                            register();
                                           }
                                         }
                                       },

@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:skyfy_app/models/Content.dart';
+import 'package:skyfy_app/models/content.dart';
 import 'package:skyfy_app/widgets/song_cover.dart';
 import '../screens/playback_screen.dart';
 
@@ -55,8 +55,8 @@ class _MiniPlayerState extends State<MiniPlayer> {
       final dv = pal.darkVibrantColor?.color ?? d;
 
       setState(() {
-        c1 = lastC1 = d.withOpacity(.9);
-        c2 = lastC2 = dv.withOpacity(.85);
+        c1 = lastC1 = d.withValues(alpha:  0.90);
+        c2 = lastC2 = dv.withValues(alpha: 0.85);
       });
     } catch (_) {
       setState(() => c1 = c2 = const Color(0xFF111111));

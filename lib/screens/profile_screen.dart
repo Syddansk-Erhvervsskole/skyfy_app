@@ -1,7 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import 'package:skyfy_app/helpers/token_helper.dart';
 import 'package:skyfy_app/helpers/user_helper.dart';
 import 'login_screen.dart';
@@ -15,7 +16,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final storage = const FlutterSecureStorage();
-  final userhelper = new UserHelper();
+  final userhelper = UserHelper();
   String? userId = "";
   String username = "";
 
@@ -70,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       var res = await userhelper.deleteUser();
-      print(res);
+ 
       if (res.statusCode == 200) {
         await storage.deleteAll();
         if (mounted) {
@@ -158,7 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ElevatedButton(
                 onPressed: _logout,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.withOpacity(0.3),
+                  backgroundColor: Colors.blue.withValues(alpha: 0.3),
                   minimumSize: const Size.fromHeight(50),
                 ),
                 child: const Text("Logout", style: TextStyle(color: Colors.white)),
@@ -169,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ElevatedButton(
                 onPressed: _confirmDelete,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.withOpacity(0.3),
+                  backgroundColor: Colors.red.withValues(alpha: 0.3),
                   minimumSize: const Size.fromHeight(50),
                 ),
                 child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
