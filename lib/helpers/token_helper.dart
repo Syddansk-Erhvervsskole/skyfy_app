@@ -15,7 +15,6 @@ class TokenHelper {
     final decoded = json.decode(utf8.decode(base64Url.decode(payload)));
     print(decoded);
     // **Claim name depends on what your API puts in the token**
-    // ASP.NET typically uses "nameid" or "sub"
     return decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ?? decoded["sub"];
   }
 }

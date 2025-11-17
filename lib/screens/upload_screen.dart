@@ -173,15 +173,6 @@ class _UploadScreenState extends State<UploadScreen> {
           ),
           child: const Text("Upload Another", style: TextStyle(color: Colors.white)),
         ),
-        const SizedBox(height: 12),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white10,
-            minimumSize: Size.fromHeight(buttonHeight),
-          ),
-          child: const Text("Back", style: TextStyle(color: Colors.white)),
-        ),
       ],
     );
   }
